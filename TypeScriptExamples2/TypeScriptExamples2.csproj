@@ -35,6 +35,10 @@
     <TypeScriptCompile Include="app.ts" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Element.ts" />
+    <Content Include="Element.js">
+      <DependentUpon>Element.ts</DependentUpon>
+    </Content>
     <Content Include="web.config" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>

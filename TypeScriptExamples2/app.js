@@ -10,5 +10,11 @@ window.onload = function () {
         Prop2: 'Prop Val 2'
     });
     setContent('PropTests.Test2.Result', propTest2.Prop2);
+    var el = new DOM.Element({
+        Tag: "div",
+        TextGet: function () {
+            return "hello world";
+        }
+    });
 };
 //@ sourceMappingURL=app.js.map

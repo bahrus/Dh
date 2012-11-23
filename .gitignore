@@ -2,3 +2,6 @@
 /TypeScriptExamples2/*.suo
 /TypeScriptExamples2/bin/*.dll
 /TypeScriptExamples2/bin/*.pdb
+/TypeScriptExamples2/obj/Debug/*.cache
+/TypeScriptExamples2/obj/Debug/*.dll
+/TypeScriptExamples2/obj/Debug/*.pdb
