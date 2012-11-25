@@ -46,5 +46,10 @@ var DOM;
         return RenderContext;
     })();
     DOM.RenderContext = RenderContext;    
+    function Div(bindInfo) {
+        bindInfo.tag = 'div';
+        return new Element(bindInfo);
+    }
+    DOM.Div = Div;
 })(DOM || (DOM = {}));
 //@ sourceMappingURL=Element.js.map

@@ -41,6 +41,9 @@ module DOM {
                 target.innerHTML = context.output;
             }
         }
+
+        
+        
     }
 
     export interface IRenderContextProps {
@@ -57,6 +60,11 @@ module DOM {
             this.output = "";
             this.elemStack = [];
         }
+    }
+
+    export function Div(bindInfo : IDOMBinder) : Element {
+        bindInfo.tag = 'div';
+        return new Element(bindInfo);
     }
 
 }

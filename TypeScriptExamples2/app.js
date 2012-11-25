@@ -19,5 +19,11 @@ window.onload = function () {
     el.render(new DOM.RenderContext({
         targetDomID: 'Element.Test1.Result'
     }));
+    var d = DOM.Div({
+        text: "I am here"
+    });
+    d.render(new DOM.RenderContext({
+        targetDomID: 'Element.Test2.Result'
+    }));
 };
 //@ sourceMappingURL=app.js.map
