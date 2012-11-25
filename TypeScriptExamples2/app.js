@@ -11,10 +11,13 @@ window.onload = function () {
     });
     setContent('PropTests.Test2.Result', propTest2.Prop2);
     var el = new DOM.Element({
-        Tag: "div",
-        TextGet: function () {
+        tag: "div",
+        textGet: function () {
             return "hello world";
         }
     });
+    el.render(new DOM.RenderContext({
+        targetDomID: 'Element.Test1.Result'
+    }));
 };
 //@ sourceMappingURL=app.js.map

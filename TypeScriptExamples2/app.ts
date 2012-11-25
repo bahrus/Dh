@@ -20,7 +20,10 @@ window.onload = () => {
     setContent('PropTests.Test2.Result', propTest2.Prop2);
 
     var el = new DOM.Element({
-        Tag: "div",
-        TextGet: () => "hello world",
+        tag: "div",
+        textGet: () => "hello world",
     });
+    el.render(new DOM.RenderContext({
+        targetDomID: 'Element.Test1.Result',
+    }));
 };
