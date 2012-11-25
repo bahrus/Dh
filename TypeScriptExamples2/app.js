@@ -10,20 +10,32 @@ window.onload = function () {
         Prop2: 'Prop Val 2'
     });
     setContent('PropTests.Test2.Result', propTest2.Prop2);
-    var el = new DOM.Element({
+    var _ = DOM;
+    var el1 = new _.Element({
         tag: "div",
         textGet: function () {
             return "hello world";
         }
     });
-    el.render(new DOM.RenderContext({
+    el1.render({
         targetDomID: 'Element.Test1.Result'
-    }));
-    var d = DOM.Div({
+    });
+    var el2 = _.Div({
         text: "I am here"
     });
-    d.render(new DOM.RenderContext({
+    el2.render({
         targetDomID: 'Element.Test2.Result'
-    }));
+    });
+    var el3 = _.Div({
+        text: 'Parent Div',
+        kids: [
+            _.Div({
+                text: 'child div'
+            })
+        ]
+    });
+    el3.render({
+        targetDomID: 'Element.Test3.Result'
+    });
 };
 //@ sourceMappingURL=app.js.map

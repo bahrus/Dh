@@ -5,13 +5,15 @@ module DOM {
         text?: string;
         //Dynamic Inner Content
         textGet?(): string;
-        childrenGet? (): Element[];
+        //child elements - used if kidsGet is null
+        kids?: Element[];
+        kidsGet? (): Element[];
     }
 
     export class Element {
         constructor (private bindInfo: IDOMBinder) { }
 
-        public render(context: RenderContext): void {
+        public doRender(context: RenderContext)  {
             var bI = this.bindInfo;
             context.output += '<' + bI.tag;
             context.output += '>';
@@ -20,12 +22,15 @@ module DOM {
             } else {
                 context.output += bI.text;
             }
-            if (bI.childrenGet != null) {
+            var children = bI.kids;
+            if (bI.kidsGet) {
+                children = bI.kidsGet();
+            }
+            if (children) {
                 context.elemStack.push(this);
-                var children = bI.childrenGet();
                 for (var i = 0, n = children.length; i < n; i++) {
                     var child = children[i];
-                    child.render(context);
+                    child.doRender(context);
                 }
                 context.elemStack.pop();
             }
@@ -42,7 +47,10 @@ module DOM {
             }
         }
 
-        
+        public render(settings: IRenderContextProps){
+            var renderContext = new RenderContext(settings);
+            this.doRender(renderContext);
+        }
         
     }
 
@@ -66,5 +74,7 @@ module DOM {
         bindInfo.tag = 'div';
         return new Element(bindInfo);
     }
+
+    
 
 }

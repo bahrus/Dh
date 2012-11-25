@@ -4,7 +4,7 @@ var DOM;
         function Element(bindInfo) {
             this.bindInfo = bindInfo;
         }
-        Element.prototype.render = function (context) {
+        Element.prototype.doRender = function (context) {
             var bI = this.bindInfo;
             context.output += '<' + bI.tag;
             context.output += '>';
@@ -13,12 +13,15 @@ var DOM;
             } else {
                 context.output += bI.text;
             }
-            if(bI.childrenGet != null) {
+            var children = bI.kids;
+            if(bI.kidsGet) {
+                children = bI.kidsGet();
+            }
+            if(children) {
                 context.elemStack.push(this);
-                var children = bI.childrenGet();
                 for(var i = 0, n = children.length; i < n; i++) {
                     var child = children[i];
-                    child.render(context);
+                    child.doRender(context);
                 }
                 context.elemStack.pop();
             }
@@ -33,6 +36,10 @@ var DOM;
                 }
                 target.innerHTML = context.output;
             }
+        };
+        Element.prototype.render = function (settings) {
+            var renderContext = new RenderContext(settings);
+            this.doRender(renderContext);
         };
         return Element;
     })();
