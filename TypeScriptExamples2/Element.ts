@@ -1,25 +1,57 @@
 module DOM {
     export interface IDOMBinder {
+
+        attributes?: { [name: string]: string; };
+
+        classes?: string[];
+
+        id?: string;
+
+        kids?: Element[];
+        kidsGet? (): Element[];
+
+        styles?: { [name: string]: string; };
+
         tag?: string;
         //Inner Content - used if textGet is null
         text?: string;
         //Dynamic Inner Content
         textGet?(): string;
         //child elements - used if kidsGet is null
-        kids?: Element[];
-        kidsGet? (): Element[];
+        
+        
+    }
+
+    export interface IInputBinder extends IDOMBinder{
+        type?: string;
+        value?: string;
+        valueGet? (): string;
     }
 
     export class Element {
-        constructor (private bindInfo: IDOMBinder) { }
+
+        constructor (private bindInfo: IDOMBinder) {
+            if (!bindInfo.attributes) {
+                bindInfo.attributes = {};
+            }
+            this.ID = bindInfo.id;
+            if (bindInfo.classes) {
+                bindInfo.attributes['class'] = bindInfo.classes.join(' ');
+            }
+
+        }
 
         public doRender(context: RenderContext)  {
             var bI = this.bindInfo;
             context.output += '<' + bI.tag;
+            var attribs = bI.attributes;
+            for (var attrib in attribs) {
+                context.output += ' ' + attrib + '="' + attribs[attrib] + '"';
+            }
             context.output += '>';
             if (bI.textGet) {
                 context.output += bI.textGet();
-            } else {
+            } else if(bI.text){
                 context.output += bI.text;
             }
             var children = bI.kids;
@@ -51,11 +83,48 @@ module DOM {
             var renderContext = new RenderContext(settings);
             this.doRender(renderContext);
         }
+
+        get ID(): string {
+            return this.bindInfo.attributes['ID'];
+        }
+
+        set ID(val: string) {
+            if (val) {
+                this.bindInfo.attributes['ID'] = val;
+            }
+        }
         
     }
 
+    export class InputElement extends Element {
+        constructor (private bindInfo: IInputBinder) {
+            super(bindInfo);
+            bindInfo.tag = "input";
+            this.value = bindInfo.value;
+        }
+
+        get value(): string {
+            return this.bindInfo.attributes['value'];
+        }
+
+        set value(val: string) {
+            if (val) {
+                this.bindInfo.attributes['value'] = val;
+            }
+        }
+
+        get type(): string {
+            return this.bindInfo.attributes['type'];
+        }
+
+        set type(val: string) {
+            if (val) {
+                this.bindInfo.attributes['type'] = val;
+            }
+        }
+    }
+
     export interface IRenderContextProps {
-        //rootElement: Element;
         targetDomID?: string;
         targetDom?: HTMLElement;
     }
@@ -76,5 +145,7 @@ module DOM {
     }
 
     
-
+    export function Input(bindInfo: IInputBinder): InputElement {
+        return new InputElement(bindInfo);
+    }
 }

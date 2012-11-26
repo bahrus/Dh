@@ -37,5 +37,12 @@ window.onload = function () {
     el3.render({
         targetDomID: 'Element.Test3.Result'
     });
+    var in1 = _.Input({
+        value: "Default Text Value",
+        type: 'text'
+    });
+    in1.render({
+        targetDomID: 'Input.Test1.Result'
+    });
 };
 //@ sourceMappingURL=app.js.map
