@@ -1,14 +1,17 @@
 ///<reference path="A__PropTests/PropTests.ts" />
+///<reference path="Dh.ts" />
 ///<reference path="Element.ts" />
 
 var setContent = (ID: string, html: string) => {
     document.getElementById(ID).innerHTML = html;
 };
 
-window.onload = () => {
-    //var el = document.getElementById('content');
-    //var greeter = new Greeter(el);
-    //greeter.start();
+//interface ISampleJson {
+//    field1: string;
+
+//}
+
+function doPropTests() {
     var propTest1 = new PropTests.Test1();
     propTest1.Prop1 = "Prop Val 1";
     setContent('PropTests.Test1.Result', propTest1.Prop1);
@@ -18,6 +21,34 @@ window.onload = () => {
         Prop2: 'Prop Val 2',
     });
     setContent('PropTests.Test2.Result', propTest2.Prop2);
+
+    var json = {
+        Prop1: 'iah',
+        Prop2: 'Prop Val 2',
+    };
+
+    var propTest3 = new PropTests.Test2(json);
+    
+    //var t: (s: PropTests.Test2) => string = p => p.Prop2;
+    var t = ()=>propTest3.Prop2;
+    var ts = t.toString();
+    
+    Dh.ListenForSVChange({
+        getter: propTest3.Prop2Getter,
+        obj: propTest3,
+        callback: newVal =>{
+            setContent('PropTests.Test3.Result', newVal);
+        },
+    });
+
+    propTest3.Prop2 = 'new value';
+    
+    
+}
+
+window.onload = () => {
+    
+    doPropTests();
 
     var _ = DOM;
 

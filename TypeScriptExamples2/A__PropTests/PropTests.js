@@ -19,13 +19,26 @@ var PropTests;
     var Test2 = (function () {
         function Test2(Prop2Data) {
             this.Prop2Data = Prop2Data;
+            this.counter = 0;
+            this.Prop2Setter = function (obj, s) {
+                obj.Prop2Data.Prop2 = s;
+            };
+            this.Prop2Getter = function (obj) {
+                return obj.Prop2;
+            };
         }
         Object.defineProperty(Test2.prototype, "Prop2", {
             get: function () {
+                this.counter++;
                 return this.Prop2Data.Prop2;
             },
             set: function (val) {
-                this.Prop2Data.Prop2 = val;
+                Dh.setSV({
+                    setter: this.Prop2Setter,
+                    obj: this,
+                    val: val,
+                    getter: this.Prop2Getter
+                });
             },
             enumerable: true,
             configurable: true

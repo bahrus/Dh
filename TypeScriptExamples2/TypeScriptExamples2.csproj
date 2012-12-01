@@ -36,6 +36,10 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Element.ts" />
+    <TypeScriptCompile Include="Dh.ts" />
+    <Content Include="Dh.js">
+      <DependentUpon>Dh.ts</DependentUpon>
+    </Content>
     <Content Include="Element.js">
       <DependentUpon>Element.ts</DependentUpon>
     </Content>

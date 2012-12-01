@@ -1,4 +1,5 @@
-// Module
+///<reference path="..\Dh.ts" />
+
 module PropTests {
 
     // Class
@@ -29,14 +30,44 @@ module PropTests {
     }
 
     export class Test2{
-        constructor (private Prop2Data: ITest2) {}
-
-        get Prop2(): string {
-            return this.Prop2Data.Prop2
+        constructor (private Prop2Data: ITest2) {
+            //this.counter = 0;
         }
 
+        public counter: number = 0;
+
+        public onBeforeProp2Changed: { (newVal: string): bool; }[]; // array of delegates
+
+        get Prop2(): string {
+            this.counter++;
+            return this.Prop2Data.Prop2;
+        }
+        
+        private Prop2Setter = (obj: Test2, s: string) => {
+            obj.Prop2Data.Prop2 = s;
+        };
+
+        public Prop2Getter = (obj: Test2): string => {
+            return obj.Prop2;
+        };
+
         set Prop2(val: string) {
-            this.Prop2Data.Prop2 = val;
+            Dh.setSV({ setter: this.Prop2Setter, obj: this, val: val, getter: this.Prop2Getter, });
+            //Dh.setSV({
+            //    setter: (obj: Test2, s: string) => {
+            //        obj.Prop2Data.Prop2 = s;
+            //    }, obj: this, val: val,
+            //});
+            //var s2 = Dh.getStringPropName(() => this.Prop2);
+            //if (this.onBeforeProp2Changed) {
+            //    for (var i = 0, n = this.onBeforeProp2Changed.length; i < n; i++) {
+            //        var handler = this.onBeforeProp2Changed[i];
+            //        if (!handler(val)) {
+            //            return;
+            //        }
+            //    }
+            //}
+            //this.Prop2Data.Prop2 = val;
         }
     }
 
