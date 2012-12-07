@@ -24,6 +24,12 @@ var DOM;
             for(var attrib in attribs) {
                 context.output += ' ' + attrib + '="' + attribs[attrib] + '"';
             }
+            var dynamicAttribs = bI.dynamicAttributes;
+            if(dynamicAttribs) {
+                for(var dynamicAttrib in dynamicAttribs) {
+                    context.output += ' ' + dynamicAttrib + '="' + dynamicAttribs[dynamicAttrib]() + '"';
+                }
+            }
             context.output += '>';
             if(bI.textGet) {
                 context.output += bI.textGet();
@@ -72,6 +78,25 @@ var DOM;
             enumerable: true,
             configurable: true
         });
+        Element.prototype.notifySPropChange = function (getter) {
+            var bI = this.bindInfo;
+            if(!bI.dynamicAttributes) {
+                return;
+            }
+            var propName = Dh.getStringPropName(getter.getter);
+            var elemPropGetter = bI.dynamicAttributes[propName];
+            if(!elemPropGetter) {
+                return;
+            }
+            var htmlElem = this.getHTMLElement();
+            var sVal = elemPropGetter();
+            if(htmlElem.attributes[propName] != sVal) {
+                htmlElem.attributes[propName] = sVal;
+            }
+        };
+        Element.prototype.getHTMLElement = function () {
+            return null;
+        };
         return Element;
     })();
     DOM.Element = Element;    
@@ -81,7 +106,11 @@ var DOM;
                 _super.call(this, bindInfo);
             this.bindInfo = bindInfo;
             bindInfo.tag = "input";
-            this.value = bindInfo.value;
+            if(bindInfo.valueGet) {
+                this.value = bindInfo.valueGet();
+            } else {
+                this.value = bindInfo.value;
+            }
         }
         Object.defineProperty(InputElement.prototype, "value", {
             get: function () {
@@ -115,7 +144,28 @@ var DOM;
             this.settings = settings;
             this.output = "";
             this.elemStack = [];
+            this.idStack = [];
         }
+        Object.defineProperty(RenderContext.prototype, "rootId", {
+            get: function () {
+                if(this.settings.targetDomID) {
+                    return this.settings.targetDomID;
+                }
+                if(this.settings.targetDom) {
+                    var topMost = this.settings.targetDom;
+                    while(topMost.attributes['_g']) {
+                        topMost = topMost.parentElement;
+                    }
+                    if(topMost.id.length == 0) {
+                        topMost.id = 'Dh_' + Dh.getUID();
+                    }
+                    ; ;
+                    return topMost.id;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
         return RenderContext;
     })();
     DOM.RenderContext = RenderContext;    

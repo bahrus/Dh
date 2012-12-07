@@ -1,20 +1,26 @@
 module Dh {
     //export function getPropName( 
     //TOD: make val of generic type
-    export interface ISetStringValue {
+    export interface ISetStringValue extends ISVGetter{
         setter(obj: any, val: string): void;
         getter(obj: any): string;
         obj: any;
         val: string;
     }
 
-    export interface IListenForStringValueChange{
-        getter(obj: any): string;
+    export interface IListenForStringValueChange extends ISVGetter{
+        //getter(obj: any): string;
         obj: any;
         callback(newVal: string): void;
     }
 
-    var objectListeners: { [name: string]: { (newVal: string): void; }[]; } = {};
+    export interface ISVGetter {
+        getter(obj: any): string;
+    }
+
+    export var objectLookup: { [name: string]: any; };
+
+    var objectListeners: { [name: string]: { (newVal: string): void; }[]; } = {}; 
 
     export function getUID() : string {
         counter++;
@@ -23,8 +29,13 @@ module Dh {
     var counter: number = 0;
 
     export function GUID(obj: any): string {
-        if(!obj.DhID) obj.DhID = getUID();
-        return obj.DhID;
+        var id = obj.DhID;
+        if (!id) {
+            id = getUID();
+            obj.DhID = id;
+            objectLookup[id] = obj;
+        }
+        return id;
     }
 
     export function ListenForSVChange(listener : IListenForStringValueChange){
@@ -38,7 +49,6 @@ module Dh {
     }
 
     export function setSV(SVSetter: ISetStringValue) {
-        debugger;
         var obj = SVSetter.obj;
         if(obj.DhID){
             var propName = getStringPropName(SVSetter.getter);
@@ -68,7 +78,7 @@ module Dh {
 
     //export function update(
 
-    export function getStringPropName(getter: { (newVal: string): string; }) : string {
+    export function getStringPropName(getter: { (newVal: any): string; }) : string {
         var s = getter.toString();
         var s2 = s.substringBetween('.').and(';');
         return s2;

@@ -36,7 +36,7 @@ module PropTests {
 
         public counter: number = 0;
 
-        public onBeforeProp2Changed: { (newVal: string): bool; }[]; // array of delegates
+        //public onBeforeProp2Changed: { (newVal: string): bool; }[]; // array of delegates
 
         get Prop2(): string {
             this.counter++;
@@ -53,21 +53,6 @@ module PropTests {
 
         set Prop2(val: string) {
             Dh.setSV({ setter: this.Prop2Setter, obj: this, val: val, getter: this.Prop2Getter, });
-            //Dh.setSV({
-            //    setter: (obj: Test2, s: string) => {
-            //        obj.Prop2Data.Prop2 = s;
-            //    }, obj: this, val: val,
-            //});
-            //var s2 = Dh.getStringPropName(() => this.Prop2);
-            //if (this.onBeforeProp2Changed) {
-            //    for (var i = 0, n = this.onBeforeProp2Changed.length; i < n; i++) {
-            //        var handler = this.onBeforeProp2Changed[i];
-            //        if (!handler(val)) {
-            //            return;
-            //        }
-            //    }
-            //}
-            //this.Prop2Data.Prop2 = val;
         }
     }
 

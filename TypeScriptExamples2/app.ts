@@ -28,10 +28,7 @@ function doPropTests() {
     };
 
     var propTest3 = new PropTests.Test2(json);
-    
-    //var t: (s: PropTests.Test2) => string = p => p.Prop2;
-    var t = ()=>propTest3.Prop2;
-    var ts = t.toString();
+  
     
     Dh.ListenForSVChange({
         getter: propTest3.Prop2Getter,
@@ -44,6 +41,25 @@ function doPropTests() {
     propTest3.Prop2 = 'new value';
     
     
+}
+
+function doInputTests() {
+    var _ = DOM;
+    var json = {
+        Prop1: 'iah',
+        Prop2: 'Prop Val 2',
+    };
+    var in1 = _.Input({ value: "Default Text Value", type: 'text' });
+
+    in1.render({ targetDomID: 'Input.Test1.Result' });
+
+    var propTest1 = new PropTests.Test2(json);
+
+    var in2 = _.Input({ valueGet: () => propTest1.Prop2, type: 'text' });
+
+    in2.render({ targetDomID: 'Input.Test2.Result' });
+
+    propTest1.Prop2 = 'new Val';
 }
 
 window.onload = () => {
@@ -68,7 +84,5 @@ window.onload = () => {
 
     el3.render({targetDomID: 'Element.Test3.Result' });
 
-    var in1 = _.Input({ value: "Default Text Value", type: 'text' });
-
-    in1.render({ targetDomID: 'Input.Test1.Result' });
+    doInputTests();
 };

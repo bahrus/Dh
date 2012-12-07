@@ -27,8 +27,6 @@ var Dh;
     }
     Dh.ListenForSVChange = ListenForSVChange;
     function setSV(SVSetter) {
-        debugger;
-
         var obj = SVSetter.obj;
         if(obj.DhID) {
             var propName = getStringPropName(SVSetter.getter);
