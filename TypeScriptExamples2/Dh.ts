@@ -14,14 +14,63 @@ module Dh {
         callback(newVal: string): void;
     }
 
+    export interface IListenForTopic {
+        topicName: string;
+        conditionForNotification?(tEvent: ITopicEvent): bool;
+        callback(tEvent: ITopicEvent): void;
+        elX?: DOM.ElX;
+        elXID?: string;
+    }
+
+    export interface ITopicEvent extends IListenForTopic {
+        event: Event;
+    }
+
     export interface ISVGetter {
         getter(obj: any): string;
     }
 
-    export var objectLookup: { [name: string]: any; };
-
+    export var objectLookup: { [name: string]: any; } = {};
     var objectListeners: { [name: string]: { (newVal: string): void; }[]; } = {}; 
+    var windowEventListeners: { [name: string]: { (IListenForTopic): void; }[]; } = {};
 
+    export function addWindowEventListener(settings: IListenForTopic) {
+        var evtName = settings.topicName;
+        var listeners = windowEventListeners[evtName];
+        if (!listeners) {
+            listeners = [];
+            windowEventListeners[evtName] = listeners;
+        }
+        var condition = settings.conditionForNotification;
+        
+        if (!condition) {
+            if (settings.elX) {
+                settings.elXID = settings.elX.ID;
+                delete settings.elX;
+            }
+            condition = ElementMatchesID;
+        }
+        var listener = function (ev: Event) {
+            var el = <HTMLElement>(ev.target);
+            var topicEvent: ITopicEvent = <ITopicEvent> settings;
+            topicEvent.event = ev;
+            if(!condition(topicEvent)) return;
+            var elX = objectLookup[topicEvent.elXID];
+            if(!elX) return; //todo:  remove topic handler
+            topicEvent.elX = elX;
+            topicEvent.callback(topicEvent);
+            delete topicEvent.elX;
+        }
+        window.addEventListener(settings.topicName, listener);
+    }
+
+    
+
+    function ElementMatchesID(tEvent: ITopicEvent) {
+        var el = <HTMLElement>(tEvent.event.target);
+        return el.id === tEvent.elXID;
+    }
+    
     export function getUID() : string {
         counter++;
         return "Dh_" + counter;
@@ -50,6 +99,7 @@ module Dh {
 
     export function setSV(SVSetter: ISetStringValue) {
         var obj = SVSetter.obj;
+        SVSetter.setter(obj, SVSetter.val);
         if(obj.DhID){
             var propName = getStringPropName(SVSetter.getter);
             var lID = obj.DhID + "." + propName;
@@ -61,7 +111,7 @@ module Dh {
                 }
             }
         }
-        SVSetter.setter(SVSetter.obj, SVSetter.val);
+        
     }
       
     export class betweenString {

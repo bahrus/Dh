@@ -11,6 +11,26 @@ var setContent = (ID: string, html: string) => {
 
 //}
 
+function doElxTests() {
+    var _ = DOM;
+
+    var el1 = new _.ElX({
+        tag: "div",
+        textGet: () => "hello world",
+    });
+    el1.render({ targetDomID: 'Element.Test1.Result' });
+
+    var el2 = _.Div({ text: "I am here" });
+    el2.render({ targetDomID: 'Element.Test2.Result' });
+
+    var el3 = 
+    _.Div({text: 'Parent Div', kids:
+        [_.Div({ text: 'child div' })]
+    });
+
+    el3.render({targetDomID: 'Element.Test3.Result' });
+}
+
 function doPropTests() {
     var propTest1 = new PropTests.Test1();
     propTest1.Prop1 = "Prop Val 1";
@@ -43,6 +63,8 @@ function doPropTests() {
     
 }
 
+
+
 function doInputTests() {
     var _ = DOM;
     var json = {
@@ -60,29 +82,41 @@ function doInputTests() {
     in2.render({ targetDomID: 'Input.Test2.Result' });
 
     propTest1.Prop2 = 'new Val';
+
+}
+
+function doTwoWayBindingTests() {
+    var _ = DOM;
+    var json = {
+        Prop1: 'iah',
+        Prop2: 'Prop Val 2',
+    };
+    var propTest1 = new PropTests.Test2(json);
+    var d = _.Div({ textGet: () => propTest1.Prop2 });
+    //var n = d.notifyTextChange;
+    var tw1 = _.Div({
+        kids: [
+            d,
+            _.Input({ valueGet: () => propTest1.Prop2, type: 'text', valueSet: (newVal: string) => { propTest1.Prop2 = newVal; } }),
+        ]
+    });
+    Dh.ListenForSVChange({
+        getter: propTest1.Prop2Getter,
+        obj: propTest1,
+        callback: newVal =>{
+            d.notifyTextChange();
+        },
+    });
+    tw1.render({ targetDomID: 'TwoWayBinding.Test1.Result' });
 }
 
 window.onload = () => {
     
     doPropTests();
 
-    var _ = DOM;
-
-    var el1 = new _.Element({
-        tag: "div",
-        textGet: () => "hello world",
-    });
-    el1.render({ targetDomID: 'Element.Test1.Result' });
-
-    var el2 = _.Div({ text: "I am here" });
-    el2.render({ targetDomID: 'Element.Test2.Result' });
-
-    var el3 = 
-    _.Div({text: 'Parent Div', kids:
-        [_.Div({ text: 'child div' })]
-    });
-
-    el3.render({targetDomID: 'Element.Test3.Result' });
+    
+    doElxTests();
 
     doInputTests();
+    doTwoWayBindingTests();
 };

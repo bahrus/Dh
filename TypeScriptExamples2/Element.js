@@ -5,19 +5,35 @@ var __extends = this.__extends || function (d, b) {
 };
 var DOM;
 (function (DOM) {
-    var Element = (function () {
-        function Element(bindInfo) {
+    var ElX = (function () {
+        function ElX(bindInfo) {
             this.bindInfo = bindInfo;
             if(!bindInfo.attributes) {
                 bindInfo.attributes = {
                 };
             }
-            this.ID = bindInfo.id;
+            var id = bindInfo.id;
+            if(!id) {
+                id = Dh.getUID();
+            }
+            this.bindInfo.attributes['ID'] = id;
+            Dh.objectLookup[id] = this;
             if(bindInfo.classes) {
                 bindInfo.attributes['class'] = bindInfo.classes.join(' ');
+                delete bindInfo.classes;
+            }
+            var styles = bindInfo.styles;
+            if(styles) {
+                var style = '';
+                for(var prop in styles) {
+                    style += (prop + ':' + styles[prop] + ';');
+                }
+                bindInfo.attributes['style'] = style;
+                delete bindInfo.styles;
             }
         }
-        Element.prototype.doRender = function (context) {
+        ElX.prototype.doRender = function (context) {
+            context.elements.push(this);
             var bI = this.bindInfo;
             context.output += '<' + bI.tag;
             var attribs = bI.attributes;
@@ -38,47 +54,132 @@ var DOM;
                     context.output += bI.text;
                 }
             }
-            var children = bI.kids;
-            if(bI.kidsGet) {
-                children = bI.kidsGet();
-            }
+            var children = bI.kidsGet ? bI.kidsGet() : bI.kids;
             if(children) {
-                context.elemStack.push(this);
+                if(!this._kidIds) {
+                    this._kidIds = [];
+                }
                 for(var i = 0, n = children.length; i < n; i++) {
                     var child = children[i];
+                    child.parentElement = this;
                     child.doRender(context);
+                    this._kidIds.push(child.ID);
                 }
-                context.elemStack.pop();
             }
             context.output += '</' + bI.tag + '>';
-            if(context.elemStack.length === 0) {
-                var s = context.settings;
-                var target;
-                if(s.targetDom) {
-                    target = s.targetDom;
-                } else {
-                    target = document.getElementById(context.settings.targetDomID);
-                }
-                target.innerHTML = context.output;
-            }
         };
-        Element.prototype.render = function (settings) {
+        ElX.prototype.render = function (settings) {
             var renderContext = new RenderContext(settings);
             this.doRender(renderContext);
+            var s = renderContext.settings;
+            var target;
+            if(s.targetDom) {
+                target = s.targetDom;
+            } else {
+                target = document.getElementById(renderContext.settings.targetDomID);
+            }
+            target.innerHTML = renderContext.output;
+            var els = renderContext.elements;
+            for(var i = els.length - 1; i > -1; i--) {
+                var el = els[i];
+                el.notifyAddedToDOM();
+            }
         };
-        Object.defineProperty(Element.prototype, "ID", {
+        Object.defineProperty(ElX.prototype, "ID", {
             get: function () {
-                return this.bindInfo.attributes['ID'];
-            },
-            set: function (val) {
-                if(val) {
-                    this.bindInfo.attributes['ID'] = val;
+                if(!this._rendered) {
+                    return this.bindInfo.attributes['ID'];
                 }
+                return this._id;
             },
             enumerable: true,
             configurable: true
         });
-        Element.prototype.notifySPropChange = function (getter) {
+        Object.defineProperty(ElX.prototype, "parentElement", {
+            get: function () {
+                if(this._rendered) {
+                    var pd = this.parentDOM;
+                    return pd ? Dh.objectLookup[pd.id] : null;
+                }
+                ; ;
+                return Dh.objectLookup[this._parentId];
+            },
+            set: function (elem) {
+                this._parentId = elem.ID;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ElX.prototype, "parentDOM", {
+            get: function () {
+                var elD = this.el;
+                return elD ? elD.parentElement : null;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ElX.prototype, "kidElements", {
+            get: function () {
+                var returnObj = [];
+                if(this._rendered) {
+                    var children = this.childrenDOM;
+                    for(var child in children) {
+                        var childDom = children[child];
+                        var childEl = Dh.objectLookup[childDom['id']];
+                        if(childEl) {
+                            returnObj.push(childEl);
+                        }
+                    }
+                } else {
+                    if(this._kidIds) {
+                        for(var i = 0, n = this._kidIds.length; i < n; i++) {
+                            var kidId = this._kidIds[i];
+                            returnObj.push(Dh.objectLookup[kidId]);
+                        }
+                    }
+                }
+                return returnObj;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ElX.prototype, "childrenDOM", {
+            get: function () {
+                var elD = this.el;
+                return elD ? elD.children : null;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ElX.prototype.notifyAddedToDOM = function () {
+            this._rendered = true;
+            var bI = this.bindInfo;
+            this._id = bI.attributes['ID'];
+            delete bI.attributes;
+            delete this._parentId;
+            delete this._kidIds;
+        };
+        ElX.prototype.notifyTextChange = function () {
+            debugger;
+
+            if(!this._rendered) {
+                return;
+            }
+            var bI = this.bindInfo;
+            if(!bI.textGet) {
+                return;
+            }
+            var newVal = bI.textGet();
+            var h = this.el;
+            if(h.innerHTML === newVal) {
+                return;
+            }
+            h.innerHTML = newVal;
+        };
+        ElX.prototype.notifySPropChange = function (getter) {
+            if(!this._rendered) {
+                return;
+            }
             var bI = this.bindInfo;
             if(!bI.dynamicAttributes) {
                 return;
@@ -88,18 +189,30 @@ var DOM;
             if(!elemPropGetter) {
                 return;
             }
-            var htmlElem = this.getHTMLElement();
+            var htmlElem = this.el;
             var sVal = elemPropGetter();
             if(htmlElem.attributes[propName] != sVal) {
                 htmlElem.attributes[propName] = sVal;
             }
         };
-        Element.prototype.getHTMLElement = function () {
-            return null;
-        };
-        return Element;
+        Object.defineProperty(ElX.prototype, "el", {
+            get: function () {
+                return document.getElementById(this._id);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return ElX;
     })();
-    DOM.Element = Element;    
+    DOM.ElX = ElX;    
+    function InputElementChangeHandler(tEvent) {
+        var newValue = tEvent.event.target['value'];
+        var ie = tEvent.elX;
+        if(!newValue || !ie) {
+            return;
+        }
+        ie.bindInfo.valueSet(newValue);
+    }
     var InputElement = (function (_super) {
         __extends(InputElement, _super);
         function InputElement(bindInfo) {
@@ -110,6 +223,13 @@ var DOM;
                 this.value = bindInfo.valueGet();
             } else {
                 this.value = bindInfo.value;
+            }
+            if(bindInfo.valueSet) {
+                Dh.addWindowEventListener({
+                    elX: this,
+                    callback: InputElementChangeHandler,
+                    topicName: 'change'
+                });
             }
         }
         Object.defineProperty(InputElement.prototype, "value", {
@@ -137,41 +257,20 @@ var DOM;
             configurable: true
         });
         return InputElement;
-    })(Element);
+    })(ElX);
     DOM.InputElement = InputElement;    
     var RenderContext = (function () {
         function RenderContext(settings) {
             this.settings = settings;
             this.output = "";
-            this.elemStack = [];
-            this.idStack = [];
+            this.elements = [];
         }
-        Object.defineProperty(RenderContext.prototype, "rootId", {
-            get: function () {
-                if(this.settings.targetDomID) {
-                    return this.settings.targetDomID;
-                }
-                if(this.settings.targetDom) {
-                    var topMost = this.settings.targetDom;
-                    while(topMost.attributes['_g']) {
-                        topMost = topMost.parentElement;
-                    }
-                    if(topMost.id.length == 0) {
-                        topMost.id = 'Dh_' + Dh.getUID();
-                    }
-                    ; ;
-                    return topMost.id;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
         return RenderContext;
     })();
     DOM.RenderContext = RenderContext;    
     function Div(bindInfo) {
         bindInfo.tag = 'div';
-        return new Element(bindInfo);
+        return new ElX(bindInfo);
     }
     DOM.Div = Div;
     function Input(bindInfo) {

@@ -1,7 +1,48 @@
 var Dh;
 (function (Dh) {
+    Dh.objectLookup = {
+    };
     var objectListeners = {
     };
+    var windowEventListeners = {
+    };
+    function addWindowEventListener(settings) {
+        var evtName = settings.topicName;
+        var listeners = windowEventListeners[evtName];
+        if(!listeners) {
+            listeners = [];
+            windowEventListeners[evtName] = listeners;
+        }
+        var condition = settings.conditionForNotification;
+        if(!condition) {
+            if(settings.elX) {
+                settings.elXID = settings.elX.ID;
+                delete settings.elX;
+            }
+            condition = ElementMatchesID;
+        }
+        var listener = function (ev) {
+            var el = (ev.target);
+            var topicEvent = settings;
+            topicEvent.event = ev;
+            if(!condition(topicEvent)) {
+                return;
+            }
+            var elX = Dh.objectLookup[topicEvent.elXID];
+            if(!elX) {
+                return;
+            }
+            topicEvent.elX = elX;
+            topicEvent.callback(topicEvent);
+            delete topicEvent.elX;
+        };
+        window.addEventListener(settings.topicName, listener);
+    }
+    Dh.addWindowEventListener = addWindowEventListener;
+    function ElementMatchesID(tEvent) {
+        var el = (tEvent.event.target);
+        return el.id === tEvent.elXID;
+    }
     function getUID() {
         counter++;
         return "Dh_" + counter;
@@ -9,10 +50,13 @@ var Dh;
     Dh.getUID = getUID;
     var counter = 0;
     function GUID(obj) {
-        if(!obj.DhID) {
-            obj.DhID = getUID();
+        var id = obj.DhID;
+        if(!id) {
+            id = getUID();
+            obj.DhID = id;
+            Dh.objectLookup[id] = obj;
         }
-        return obj.DhID;
+        return id;
     }
     Dh.GUID = GUID;
     function ListenForSVChange(listener) {
@@ -28,6 +72,7 @@ var Dh;
     Dh.ListenForSVChange = ListenForSVChange;
     function setSV(SVSetter) {
         var obj = SVSetter.obj;
+        SVSetter.setter(obj, SVSetter.val);
         if(obj.DhID) {
             var propName = getStringPropName(SVSetter.getter);
             var lID = obj.DhID + "." + propName;
@@ -39,7 +84,6 @@ var Dh;
                 }
             }
         }
-        SVSetter.setter(SVSetter.obj, SVSetter.val);
     }
     Dh.setSV = setSV;
     var betweenString = (function () {

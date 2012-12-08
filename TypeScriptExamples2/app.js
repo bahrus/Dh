@@ -1,6 +1,35 @@
 var setContent = function (ID, html) {
     document.getElementById(ID).innerHTML = html;
 };
+function doElxTests() {
+    var _ = DOM;
+    var el1 = new _.ElX({
+        tag: "div",
+        textGet: function () {
+            return "hello world";
+        }
+    });
+    el1.render({
+        targetDomID: 'Element.Test1.Result'
+    });
+    var el2 = _.Div({
+        text: "I am here"
+    });
+    el2.render({
+        targetDomID: 'Element.Test2.Result'
+    });
+    var el3 = _.Div({
+        text: 'Parent Div',
+        kids: [
+            _.Div({
+                text: 'child div'
+            })
+        ]
+    });
+    el3.render({
+        targetDomID: 'Element.Test3.Result'
+    });
+}
 function doPropTests() {
     var propTest1 = new PropTests.Test1();
     propTest1.Prop1 = "Prop Val 1";
@@ -49,35 +78,48 @@ function doInputTests() {
     });
     propTest1.Prop2 = 'new Val';
 }
-window.onload = function () {
-    doPropTests();
+function doTwoWayBindingTests() {
     var _ = DOM;
-    var el1 = new _.Element({
-        tag: "div",
+    var json = {
+        Prop1: 'iah',
+        Prop2: 'Prop Val 2'
+    };
+    var propTest1 = new PropTests.Test2(json);
+    var d = _.Div({
         textGet: function () {
-            return "hello world";
+            return propTest1.Prop2;
         }
     });
-    el1.render({
-        targetDomID: 'Element.Test1.Result'
-    });
-    var el2 = _.Div({
-        text: "I am here"
-    });
-    el2.render({
-        targetDomID: 'Element.Test2.Result'
-    });
-    var el3 = _.Div({
-        text: 'Parent Div',
+    var tw1 = _.Div({
         kids: [
-            _.Div({
-                text: 'child div'
-            })
+            d, 
+            _.Input({
+                valueGet: function () {
+                    return propTest1.Prop2;
+                },
+                type: 'text',
+                valueSet: function (newVal) {
+                    propTest1.Prop2 = newVal;
+                }
+            }), 
+            
         ]
     });
-    el3.render({
-        targetDomID: 'Element.Test3.Result'
+    Dh.ListenForSVChange({
+        getter: propTest1.Prop2Getter,
+        obj: propTest1,
+        callback: function (newVal) {
+            d.notifyTextChange();
+        }
     });
+    tw1.render({
+        targetDomID: 'TwoWayBinding.Test1.Result'
+    });
+}
+window.onload = function () {
+    doPropTests();
+    doElxTests();
     doInputTests();
+    doTwoWayBindingTests();
 };
 //@ sourceMappingURL=app.js.map

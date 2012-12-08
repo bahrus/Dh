@@ -8,8 +8,8 @@ module DOM {
 
         id?: string;
 
-        kids?: Element[];
-        kidsGet? (): Element[];
+        kids?: ElX[];
+        kidsGet? (): ElX[];
 
         styles?: { [name: string]: string; };
 
@@ -27,9 +27,11 @@ module DOM {
         type?: string;
         value?: string;
         valueGet? (): string;
+        valueSet? (newVal: string): void;
+        checkedValueSet? (oldVal: string, newVal: string): void;
     }
 
-    export class Element {
+    export class ElX {
 
         constructor (private bindInfo: IDOMBinder) {
             if (!bindInfo.attributes) {
@@ -46,7 +48,16 @@ module DOM {
                 bindInfo.attributes['class'] = bindInfo.classes.join(' ');
                 delete bindInfo.classes;
             }
-
+            var styles = bindInfo.styles;
+            if (styles) {
+                var style = '';
+                for (var prop in styles) {
+                    style += (prop + ':' + styles[prop] + ';');
+                }
+                bindInfo.attributes['style'] = style;
+                delete bindInfo.styles;
+            }
+            
         }
 
         public doRender(context: RenderContext) {
@@ -80,21 +91,19 @@ module DOM {
                 }
             }
             context.output += '</' + bI.tag + '>';
-            if (context.elements.length === 0) {
-                var s = context.settings;
-                var target: HTMLElement;
-                if (s.targetDom) {
-                    target = s.targetDom;
-                } else {
-                    target = document.getElementById(context.settings.targetDomID);
-                }
-                target.innerHTML = context.output;
-            }
         }
 
         public render(settings: IRenderContextProps) {
             var renderContext = new RenderContext(settings);
             this.doRender(renderContext);
+            var s = renderContext.settings;
+            var target: HTMLElement;
+            if (s.targetDom) {
+                target = s.targetDom;
+            } else {
+                target = document.getElementById(renderContext.settings.targetDomID);
+            }
+            target.innerHTML = renderContext.output;
             var els = renderContext.elements;
             for (var i = els.length - 1; i > -1; i--) {
                 var el = els[i];
@@ -111,7 +120,7 @@ module DOM {
 
         private _parentId: string;
 
-        public get parentElement(): Element {
+        public get parentElement(): ElX {
             if (this._rendered) {
                 var pd = this.parentDOM;
                 return pd ? Dh.objectLookup[pd.id] : null;
@@ -119,7 +128,7 @@ module DOM {
             return Dh.objectLookup[this._parentId];
         }  
 
-        public set parentElement(elem: Element) {
+        public set parentElement(elem: ElX) {
             this._parentId = elem.ID;
         }
 
@@ -132,7 +141,7 @@ module DOM {
 
         private _kidIds: string[];
 
-        public get kidElements(): Element[] {
+        public get kidElements(): ElX[] {
             var returnObj = [];
             if (this._rendered) {
                 var children = this.childrenDOM;
@@ -144,7 +153,7 @@ module DOM {
             } else if(this._kidIds) {
                 for (var i = 0, n = this._kidIds.length; i < n; i++) {
                     var kidId = this._kidIds[i];
-                    returnObj.push(Dh.objectLookup[kidId];
+                    returnObj.push(Dh.objectLookup[kidId]);
                 }
             }
             return returnObj;
@@ -164,6 +173,17 @@ module DOM {
             delete bI.attributes;
             delete this._parentId;
             delete this._kidIds;
+        }
+
+        public notifyTextChange(/*getter: Dh.ISVGetter*/) {
+            debugger;
+            if(!this._rendered) return;
+            var bI = this.bindInfo;
+            if(!bI.textGet) return;
+            var newVal = bI.textGet();
+            var h : HTMLElement = this.el;
+            if(h.innerHTML===newVal) return;
+            h.innerHTML = newVal;
         }
 
         public notifySPropChange(getter: Dh.ISVGetter) {
@@ -186,8 +206,15 @@ module DOM {
         }
     }
 
-    export class InputElement extends Element {
-        constructor (private bindInfo: IInputBinder) {
+    function InputElementChangeHandler(tEvent: Dh.ITopicEvent){
+        var newValue = tEvent.event.target['value'];
+        var ie = <InputElement> tEvent.elX;
+        if(!newValue || !ie) return;
+        ie.bindInfo.valueSet(newValue);
+    }
+
+    export class InputElement extends ElX {
+        constructor (public bindInfo: IInputBinder) {
             super(bindInfo);
             bindInfo.tag = "input";
             if (bindInfo.valueGet) {
@@ -195,7 +222,20 @@ module DOM {
             } else {
                 this.value = bindInfo.value;
             }
+            if (bindInfo.valueSet) {
+                Dh.addWindowEventListener({
+                    elX: this,
+                    callback: InputElementChangeHandler,
+                    //callback: tEvent =>{
+                    
+                    //},
+                    topicName: 'change',
+                });
+            }
         }
+
+        
+        
 
         get value(): string {
             return this.bindInfo.attributes['value'];
@@ -225,7 +265,7 @@ module DOM {
 
     export class RenderContext {
         public output: string;
-        public elements: Element[];
+        public elements: ElX[];
         //public idStack: number[];
         
         constructor (public settings: IRenderContextProps) {
@@ -238,9 +278,9 @@ module DOM {
         
     }
 
-    export function Div(bindInfo : IDOMBinder) : Element {
+    export function Div(bindInfo : IDOMBinder) : ElX {
         bindInfo.tag = 'div';
-        return new Element(bindInfo);
+        return new ElX(bindInfo);
     }
 
     
