@@ -2,6 +2,9 @@
 ///<reference path="Dh.ts" />
 ///<reference path="Element.ts" />
 
+
+
+
 var setContent = (ID: string, html: string) => {
     document.getElementById(ID).innerHTML = html;
 };
@@ -63,8 +66,6 @@ function doPropTests() {
     
 }
 
-
-
 function doInputTests() {
     var _ = DOM;
     var json = {
@@ -110,13 +111,27 @@ function doTwoWayBindingTests() {
     tw1.render({ targetDomID: 'TwoWayBinding.Test1.Result' });
 }
 
+function doStaticLists() {
+    var _ = DOM;
+    var UL = _.UL, LI = _.LI;
+    var ul1 = UL({
+        kids: [
+            LI({ text: 'list item 1', collapsed:true, toggleKids:true,  kids: [
+                     UL({kids:[
+                         LI({ text: 'sub 1.1' }),
+                         LI({ text: 'sub 1.2' }),
+                     ],}),
+            ],}),
+            LI({ text: 'list item 2' }),
+        ],
+    });
+    ul1.render({ targetDomID: 'Lists.Test1.Result' });
+}
+
 window.onload = () => {
-    
     doPropTests();
-
-    
     doElxTests();
-
     doInputTests();
     doTwoWayBindingTests();
+    doStaticLists();
 };

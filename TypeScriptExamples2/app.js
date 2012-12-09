@@ -116,10 +116,45 @@ function doTwoWayBindingTests() {
         targetDomID: 'TwoWayBinding.Test1.Result'
     });
 }
+function doStaticLists() {
+    var _ = DOM;
+    var UL = _.UL, LI = _.LI;
+    var ul1 = UL({
+        kids: [
+            LI({
+                text: 'list item 1',
+                collapsed: true,
+                toggleKids: true,
+                kids: [
+                    UL({
+                        kids: [
+                            LI({
+                                text: 'sub 1.1'
+                            }), 
+                            LI({
+                                text: 'sub 1.2'
+                            }), 
+                            
+                        ]
+                    }), 
+                    
+                ]
+            }), 
+            LI({
+                text: 'list item 2'
+            }), 
+            
+        ]
+    });
+    ul1.render({
+        targetDomID: 'Lists.Test1.Result'
+    });
+}
 window.onload = function () {
     doPropTests();
     doElxTests();
     doInputTests();
     doTwoWayBindingTests();
+    doStaticLists();
 };
 //@ sourceMappingURL=app.js.map

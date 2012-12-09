@@ -1,10 +1,18 @@
-var __extends = this.__extends || function (d, b) {
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
 var DOM;
 (function (DOM) {
+    function ElementToggleClickHandler(tEvent) {
+        var elX = tEvent.elX;
+        var target = tEvent.event.target;
+        var bI = elX.bindInfo;
+        if(bI.collapsed) {
+            delete bI.collapsed;
+            elX.innerRender({
+                targetDom: target
+            });
+        } else {
+            throw Error;
+        }
+    }
     var ElX = (function () {
         function ElX(bindInfo) {
             this.bindInfo = bindInfo;
@@ -31,6 +39,13 @@ var DOM;
                 bindInfo.attributes['style'] = style;
                 delete bindInfo.styles;
             }
+            if(bindInfo.toggleKids) {
+                Dh.addWindowEventListener({
+                    elX: this,
+                    topicName: 'click',
+                    callback: ElementToggleClickHandler
+                });
+            }
         }
         ElX.prototype.doRender = function (context) {
             context.elements.push(this);
@@ -54,6 +69,13 @@ var DOM;
                     context.output += bI.text;
                 }
             }
+            if(!bI.collapsed) {
+                this.doInnerRender(context);
+            }
+            context.output += '</' + bI.tag + '>';
+        };
+        ElX.prototype.doInnerRender = function (context) {
+            var bI = this.bindInfo;
             var children = bI.kidsGet ? bI.kidsGet() : bI.kids;
             if(children) {
                 if(!this._kidIds) {
@@ -66,7 +88,7 @@ var DOM;
                     this._kidIds.push(child.ID);
                 }
             }
-            context.output += '</' + bI.tag + '>';
+            this._innerRendered = true;
         };
         ElX.prototype.render = function (settings) {
             var renderContext = new RenderContext(settings);
@@ -84,6 +106,21 @@ var DOM;
                 var el = els[i];
                 el.notifyAddedToDOM();
             }
+        };
+        ElX.prototype.innerRender = function (settings) {
+            if(this._innerRendered) {
+                return;
+            }
+            var renderContext = new RenderContext(settings);
+            this.doRender(renderContext);
+            var target = this.el;
+            target.innerHTML = renderContext.output;
+            var els = renderContext.elements;
+            for(var i = els.length - 1; i > -1; i--) {
+                var el = els[i];
+                el.notifyAddedToDOM();
+            }
+            this._innerRendered = true;
         };
         Object.defineProperty(ElX.prototype, "ID", {
             get: function () {
@@ -156,8 +193,10 @@ var DOM;
             var bI = this.bindInfo;
             this._id = bI.attributes['ID'];
             delete bI.attributes;
-            delete this._parentId;
-            delete this._kidIds;
+            if(!bI.collapsed) {
+                delete this._parentId;
+                delete this._kidIds;
+            }
         };
         ElX.prototype.notifyTextChange = function () {
             debugger;
@@ -205,60 +244,6 @@ var DOM;
         return ElX;
     })();
     DOM.ElX = ElX;    
-    function InputElementChangeHandler(tEvent) {
-        var newValue = tEvent.event.target['value'];
-        var ie = tEvent.elX;
-        if(!newValue || !ie) {
-            return;
-        }
-        ie.bindInfo.valueSet(newValue);
-    }
-    var InputElement = (function (_super) {
-        __extends(InputElement, _super);
-        function InputElement(bindInfo) {
-                _super.call(this, bindInfo);
-            this.bindInfo = bindInfo;
-            bindInfo.tag = "input";
-            if(bindInfo.valueGet) {
-                this.value = bindInfo.valueGet();
-            } else {
-                this.value = bindInfo.value;
-            }
-            if(bindInfo.valueSet) {
-                Dh.addWindowEventListener({
-                    elX: this,
-                    callback: InputElementChangeHandler,
-                    topicName: 'change'
-                });
-            }
-        }
-        Object.defineProperty(InputElement.prototype, "value", {
-            get: function () {
-                return this.bindInfo.attributes['value'];
-            },
-            set: function (val) {
-                if(val) {
-                    this.bindInfo.attributes['value'] = val;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(InputElement.prototype, "type", {
-            get: function () {
-                return this.bindInfo.attributes['type'];
-            },
-            set: function (val) {
-                if(val) {
-                    this.bindInfo.attributes['type'] = val;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return InputElement;
-    })(ElX);
-    DOM.InputElement = InputElement;    
     var RenderContext = (function () {
         function RenderContext(settings) {
             this.settings = settings;
@@ -273,8 +258,18 @@ var DOM;
         return new ElX(bindInfo);
     }
     DOM.Div = Div;
+    function UL(bindInfo) {
+        bindInfo.tag = 'ul';
+        return new ElX(bindInfo);
+    }
+    DOM.UL = UL;
+    function LI(bindInfo) {
+        bindInfo.tag = 'li';
+        return new ElX(bindInfo);
+    }
+    DOM.LI = LI;
     function Input(bindInfo) {
-        return new InputElement(bindInfo);
+        return new DOM.InputElement(bindInfo);
     }
     DOM.Input = Input;
 })(DOM || (DOM = {}));

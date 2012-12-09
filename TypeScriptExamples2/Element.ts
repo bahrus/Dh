@@ -1,3 +1,4 @@
+///<reference path="InputElement.ts" />
 module DOM {
     export interface IDOMBinder {
 
@@ -20,7 +21,8 @@ module DOM {
         textGet?(): string;
         //child elements - used if kidsGet is null
         
-        
+        toggleKids?: bool;
+        collapsed?: bool;
     }
 
     export interface IInputBinder extends IDOMBinder{
@@ -31,9 +33,23 @@ module DOM {
         checkedValueSet? (oldVal: string, newVal: string): void;
     }
 
+    function ElementToggleClickHandler(tEvent: Dh.ITopicEvent){
+        var elX = tEvent.elX;
+        var target = <HTMLElement>tEvent.event.target;
+        var bI = elX.bindInfo;
+        if (bI.collapsed) {
+            delete bI.collapsed;
+            elX.innerRender({
+                targetDom: target,
+            });
+        } else {
+            throw Error;
+        }
+    }
+
     export class ElX {
 
-        constructor (private bindInfo: IDOMBinder) {
+        constructor (public bindInfo: IDOMBinder) {
             if (!bindInfo.attributes) {
                 bindInfo.attributes = {};
             }
@@ -57,7 +73,13 @@ module DOM {
                 bindInfo.attributes['style'] = style;
                 delete bindInfo.styles;
             }
-            
+            if (bindInfo.toggleKids) {
+                Dh.addWindowEventListener({
+                    elX: this,
+                    topicName: 'click',
+                    callback: ElementToggleClickHandler
+                });
+            }
         }
 
         public doRender(context: RenderContext) {
@@ -80,6 +102,15 @@ module DOM {
             } else if (bI.text) {
                 context.output += bI.text;
             }
+            if (!bI.collapsed) {
+                this.doInnerRender(context);
+            }
+            context.output += '</' + bI.tag + '>';
+        }
+
+        public doInnerRender(context: RenderContext){
+            var bI = this.bindInfo;
+            
             var children = bI.kidsGet ? bI.kidsGet() : bI.kids;
             if (children) {
                 if (!this._kidIds) this._kidIds = [];
@@ -90,7 +121,7 @@ module DOM {
                     this._kidIds.push(child.ID);
                 }
             }
-            context.output += '</' + bI.tag + '>';
+            this._innerRendered = true;
         }
 
         public render(settings: IRenderContextProps) {
@@ -109,6 +140,20 @@ module DOM {
                 var el = els[i];
                 el.notifyAddedToDOM();
             }
+        }
+
+        public innerRender(settings: IRenderContextProps){
+            if(this._innerRendered) return;
+            var renderContext = new RenderContext(settings);
+            this.doRender(renderContext);
+            var target = this.el;
+            target.innerHTML = renderContext.output;
+            var els = renderContext.elements;
+            for (var i = els.length - 1; i > -1; i--) {
+                var el = els[i];
+                el.notifyAddedToDOM();
+            }
+            this._innerRendered = true;
         }
 
         private _id: string;
@@ -165,15 +210,24 @@ module DOM {
         }
 
         private _rendered: bool;
+        private _innerRendered: bool;
 
         public notifyAddedToDOM() {
             this._rendered = true;
             var bI = this.bindInfo;
             this._id = bI.attributes['ID'];
             delete bI.attributes;
-            delete this._parentId;
-            delete this._kidIds;
+            if (!bI.collapsed) {
+                delete this._parentId;
+                delete this._kidIds;
+            }
         }
+
+        //public notifyInnerAddedToDOM(){
+        //    this._innerRendered = true;
+        //    delete this._parentId;
+        //    delete this._kidIds;
+        //}
 
         public notifyTextChange(/*getter: Dh.ISVGetter*/) {
             debugger;
@@ -206,57 +260,6 @@ module DOM {
         }
     }
 
-    function InputElementChangeHandler(tEvent: Dh.ITopicEvent){
-        var newValue = tEvent.event.target['value'];
-        var ie = <InputElement> tEvent.elX;
-        if(!newValue || !ie) return;
-        ie.bindInfo.valueSet(newValue);
-    }
-
-    export class InputElement extends ElX {
-        constructor (public bindInfo: IInputBinder) {
-            super(bindInfo);
-            bindInfo.tag = "input";
-            if (bindInfo.valueGet) {
-                this.value = bindInfo.valueGet();
-            } else {
-                this.value = bindInfo.value;
-            }
-            if (bindInfo.valueSet) {
-                Dh.addWindowEventListener({
-                    elX: this,
-                    callback: InputElementChangeHandler,
-                    //callback: tEvent =>{
-                    
-                    //},
-                    topicName: 'change',
-                });
-            }
-        }
-
-        
-        
-
-        get value(): string {
-            return this.bindInfo.attributes['value'];
-        }
-
-        set value(val: string) {
-            if (val) {
-                this.bindInfo.attributes['value'] = val;
-            }
-        }
-
-        get type(): string {
-            return this.bindInfo.attributes['type'];
-        }
-
-        set type(val: string) {
-            if (val) {
-                this.bindInfo.attributes['type'] = val;
-            }
-        }
-    }
 
     export interface IRenderContextProps {
         targetDomID?: string;
@@ -278,11 +281,20 @@ module DOM {
         
     }
 
-    export function Div(bindInfo : IDOMBinder) : ElX {
+    export function Div(bindInfo: IDOMBinder) : ElX {
         bindInfo.tag = 'div';
         return new ElX(bindInfo);
     }
 
+    export function UL(bindInfo:IDOMBinder) : ElX {
+        bindInfo.tag = 'ul';
+        return new ElX(bindInfo);
+    }
+
+    export function LI(bindInfo: IDOMBinder) : ElX {
+        bindInfo.tag = 'li';
+        return new ElX(bindInfo);
+    }
     
     export function Input(bindInfo: IInputBinder): InputElement {
         return new InputElement(bindInfo);

@@ -22,6 +22,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="app.css" />
+    <TypeScriptCompile Include="InputElement.ts" />
+    <Content Include="InputElement.js">
+      <DependentUpon>InputElement.ts</DependentUpon>
+    </Content>
     <Content Include="WebForm1.aspx" />
     <TypeScriptCompile Include="A__PropTests\PropTests.ts" />
     <Content Include="A__PropTests\PropTests.js">
@@ -84,7 +88,7 @@
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerPort>49533</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>http://localhost:52113/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
