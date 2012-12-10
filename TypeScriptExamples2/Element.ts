@@ -21,7 +21,7 @@ module DOM {
         textGet?(): string;
         //child elements - used if kidsGet is null
         
-        toggleKids?: bool;
+        toggleKidsOnParentClick?: bool;
         collapsed?: bool;
     }
 
@@ -33,18 +33,26 @@ module DOM {
         checkedValueSet? (oldVal: string, newVal: string): void;
     }
 
-    function ElementToggleClickHandler(tEvent: Dh.ITopicEvent){
+    function ParentElementToggleClickHandler(tEvent: Dh.ITopicEvent){
         var elX = tEvent.elX;
-        var target = <HTMLElement>tEvent.event.target;
-        var bI = elX.bindInfo;
-        if (bI.collapsed) {
-            delete bI.collapsed;
-            elX.innerRender({
-                targetDom: target,
-            });
-        } else {
-            throw Error;
+        //var target = <HTMLElement>tEvent.event.target;
+        var kids = elX.kidElements;
+        if(!kids) return;
+        for (var i = 0, n = kids.length; i < n; i++) {
+            var kid = kids[i];
+            var target = kid.el;
+            var bI = kid.bindInfo;
+            if (bI.collapsed) {
+                delete bI.collapsed;
+                kid.innerRender({
+                    targetDom: target,
+                });
+            } else if(bI.toggleKidsOnParentClick) {
+                bI.collapsed = true;
+                target.className = 'collapsed';
+            }
         }
+        
     }
 
     export class ElX {
@@ -73,18 +81,19 @@ module DOM {
                 bindInfo.attributes['style'] = style;
                 delete bindInfo.styles;
             }
-            if (bindInfo.toggleKids) {
-                Dh.addWindowEventListener({
-                    elX: this,
-                    topicName: 'click',
-                    callback: ElementToggleClickHandler
-                });
-            }
+
         }
 
         public doRender(context: RenderContext) {
             context.elements.push(this);
             var bI = this.bindInfo;
+            if (bI.toggleKidsOnParentClick) {
+                Dh.addWindowEventListener({
+                    elX: this.parentElement,
+                    topicName: 'click',
+                    callback: ParentElementToggleClickHandler,
+                });
+            }
             context.output += '<' + bI.tag;
             var attribs = bI.attributes;
             for (var attrib in attribs) {
@@ -147,6 +156,7 @@ module DOM {
             var renderContext = new RenderContext(settings);
             this.doRender(renderContext);
             var target = this.el;
+            debugger;
             target.innerHTML = renderContext.output;
             var els = renderContext.elements;
             for (var i = els.length - 1; i > -1; i--) {

@@ -1,16 +1,26 @@
 var DOM;
 (function (DOM) {
-    function ElementToggleClickHandler(tEvent) {
+    function ParentElementToggleClickHandler(tEvent) {
         var elX = tEvent.elX;
-        var target = tEvent.event.target;
-        var bI = elX.bindInfo;
-        if(bI.collapsed) {
-            delete bI.collapsed;
-            elX.innerRender({
-                targetDom: target
-            });
-        } else {
-            throw Error;
+        var kids = elX.kidElements;
+        if(!kids) {
+            return;
+        }
+        for(var i = 0, n = kids.length; i < n; i++) {
+            var kid = kids[i];
+            var target = kid.el;
+            var bI = kid.bindInfo;
+            if(bI.collapsed) {
+                delete bI.collapsed;
+                kid.innerRender({
+                    targetDom: target
+                });
+            } else {
+                if(bI.toggleKidsOnParentClick) {
+                    bI.collapsed = true;
+                    target.className = 'collapsed';
+                }
+            }
         }
     }
     var ElX = (function () {
@@ -39,17 +49,17 @@ var DOM;
                 bindInfo.attributes['style'] = style;
                 delete bindInfo.styles;
             }
-            if(bindInfo.toggleKids) {
-                Dh.addWindowEventListener({
-                    elX: this,
-                    topicName: 'click',
-                    callback: ElementToggleClickHandler
-                });
-            }
         }
         ElX.prototype.doRender = function (context) {
             context.elements.push(this);
             var bI = this.bindInfo;
+            if(bI.toggleKidsOnParentClick) {
+                Dh.addWindowEventListener({
+                    elX: this.parentElement,
+                    topicName: 'click',
+                    callback: ParentElementToggleClickHandler
+                });
+            }
             context.output += '<' + bI.tag;
             var attribs = bI.attributes;
             for(var attrib in attribs) {
@@ -114,6 +124,8 @@ var DOM;
             var renderContext = new RenderContext(settings);
             this.doRender(renderContext);
             var target = this.el;
+            debugger;
+
             target.innerHTML = renderContext.output;
             var els = renderContext.elements;
             for(var i = els.length - 1; i > -1; i--) {

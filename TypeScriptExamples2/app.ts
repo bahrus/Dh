@@ -116,8 +116,8 @@ function doStaticLists() {
     var UL = _.UL, LI = _.LI;
     var ul1 = UL({
         kids: [
-            LI({ text: 'list item 1', collapsed:true, toggleKids:true,  kids: [
-                     UL({kids:[
+            LI({ text: 'list item 1',  kids: [
+                     UL({collapsed:true, toggleKidsOnParentClick:true, kids:[
                          LI({ text: 'sub 1.1' }),
                          LI({ text: 'sub 1.2' }),
                      ],}),

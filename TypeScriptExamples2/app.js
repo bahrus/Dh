@@ -123,10 +123,10 @@ function doStaticLists() {
         kids: [
             LI({
                 text: 'list item 1',
-                collapsed: true,
-                toggleKids: true,
                 kids: [
                     UL({
+                        collapsed: true,
+                        toggleKidsOnParentClick: true,
                         kids: [
                             LI({
                                 text: 'sub 1.1'
