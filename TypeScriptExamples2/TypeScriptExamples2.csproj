@@ -23,6 +23,10 @@
   <ItemGroup>
     <Content Include="app.css" />
     <TypeScriptCompile Include="InputElement.ts" />
+    <TypeScriptCompile Include="ie9.ts" />
+    <Content Include="ie9.js">
+      <DependentUpon>ie9.ts</DependentUpon>
+    </Content>
     <Content Include="InputElement.js">
       <DependentUpon>InputElement.ts</DependentUpon>
     </Content>

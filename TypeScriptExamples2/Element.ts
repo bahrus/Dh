@@ -1,4 +1,5 @@
 ///<reference path="InputElement.ts" />
+///<reference path="ie9.ts" />
 module DOM {
     export interface IDOMBinder {
 
@@ -40,16 +41,20 @@ module DOM {
         if(!kids) return;
         for (var i = 0, n = kids.length; i < n; i++) {
             var kid = kids[i];
-            var target = kid.el;
+            //var target = kid.el;
             var bI = kid.bindInfo;
             if (bI.collapsed) {
                 delete bI.collapsed;
+                var target = kid.el;
                 kid.innerRender({
                     targetDom: target,
                 });
+                kid.removeClass('collapsed');
+                
             } else if(bI.toggleKidsOnParentClick) {
                 bI.collapsed = true;
-                target.className = 'collapsed';
+                kid.ensureClass('collapsed');
+                //target.className = 'collapsed';
             }
         }
         
@@ -82,6 +87,40 @@ module DOM {
                 delete bindInfo.styles;
             }
 
+        }
+
+        public ensureClass(className: string){
+            var bI = this.bindInfo;
+            if (!this._rendered) {
+                //TODO: untested code
+                if (!bI.classes) bI.classes = [];
+                var c = bI.classes;
+                if(c.indexOf(className) != -1) return;
+                c.push(className);
+                return;
+            }
+            var el = this.el, cl = el.classList;
+            if (cl) { cl.add(className); return; } else { backwardsComp.ensureClass(el, className); }
+            
+        }
+
+        public removeClass(className: string){
+            var bI = this.bindInfo;
+            if (!this._rendered) {
+                //TODO: untested code
+                if (!bI.classes) return;
+                var c = bI.classes;
+                var i = c.indexOf(className);
+                if(i == -1) return;
+                c.splice(i, 1);
+                return;
+            }
+            var cl = this.el.classList;
+            if (cl) {
+                this.el.classList.remove(className);
+            } else {
+                backwardsComp.removeClass(this.el, className);
+            }
         }
 
         public doRender(context: RenderContext) {
@@ -154,9 +193,10 @@ module DOM {
         public innerRender(settings: IRenderContextProps){
             if(this._innerRendered) return;
             var renderContext = new RenderContext(settings);
-            this.doRender(renderContext);
+            
+            this.doInnerRender(renderContext);
             var target = this.el;
-            debugger;
+            
             target.innerHTML = renderContext.output;
             var els = renderContext.elements;
             for (var i = els.length - 1; i > -1; i--) {
