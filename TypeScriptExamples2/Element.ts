@@ -227,8 +227,6 @@ module DOM {
             this._parentId = elem.ID;
         }
 
-        
-
         public get parentDOM(): HTMLElement {
             var elD = this.el;
             return elD ? elD.parentElement : null;

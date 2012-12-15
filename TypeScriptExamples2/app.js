@@ -149,6 +149,65 @@ function doStaticLists() {
     ul1.render({
         targetDomID: 'Lists.Test1.Result'
     });
+    var json = {
+        subject: "JavaScript",
+        books: [
+            {
+                title: "JavaScript Pro",
+                chapters: [
+                    {
+                        name: 'chapter 1'
+                    }
+                ]
+            }
+        ]
+    };
+    var json = {
+        subject: "JavaScript",
+        books: []
+    };
+    for(var i = 0; i < 10; i++) {
+        var book = {
+            title: " book " + i,
+            chapters: []
+        };
+        json.books.push(book);
+        for(var j = 0; j < 10; j++) {
+            var chapter = {
+                name: 'chapter ' + j
+            };
+            book.chapters.push(chapter);
+        }
+    }
+    var chapterToLI = function (chapter, i) {
+        return LI({
+            text: chapter.name
+        });
+    };
+    var bookToLI = function (book, i) {
+        var li = LI({
+            text: book.title,
+            kids: [
+                UL({
+                    kids: book.chapters.map(chapterToLI)
+                })
+            ]
+        });
+        return li;
+    };
+    debugger;
+
+    var ul2 = UL({
+        kids: [
+            LI({
+                text: json.subject,
+                kids: json.books.map(bookToLI)
+            })
+        ]
+    });
+    ul2.render({
+        targetDomID: 'Lists.Test2.Result'
+    });
 }
 window.onload = function () {
     doPropTests();
