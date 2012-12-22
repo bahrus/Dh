@@ -11,7 +11,7 @@ module DOM {
         id?: string;
 
         kids?: ElX[];
-        kidsGet? (): ElX[];
+        kidsGet? (el: ElX): ElX[];
 
         styles?: { [name: string]: string; };
 
@@ -24,6 +24,8 @@ module DOM {
         
         toggleKidsOnParentClick?: bool;
         collapsed?: bool;
+        dataContext?: any;
+        selectSettings?: ISelectBinder;
     }
 
     export interface IInputBinder extends IDOMBinder{
@@ -32,6 +34,19 @@ module DOM {
         valueGet? (): string;
         valueSet? (newVal: string): void;
         checkedValueSet? (oldVal: string, newVal: string): void;
+    }
+
+    export interface ISelectBinder {
+        //static 
+        selected?: bool;
+        //dynamic
+        selectGet? (): bool;
+        selectSet? (newVal: bool): void;
+        group?: string;
+        selClassName?: string;
+        partialSelClassName?: string;
+        unselClassName?: string;
+        conformWithParent?: bool;
     }
 
     function ParentElementToggleClickHandler(tEvent: Dh.ITopicEvent){
@@ -60,6 +75,16 @@ module DOM {
         
     }
 
+    function SelectElementClickHandler(tEvent: Dh.ITopicEvent) {
+        var elX = tEvent.elX;
+        var ss = elX.bindInfo.selectSettings;
+        var newVal = !elX.selected;
+        if (ss) {
+            if(ss.selectSet) ss.selectSet(newVal);
+        }
+        elX.selected = newVal;
+    }
+
     export class ElX {
 
         constructor (public bindInfo: IDOMBinder) {
@@ -86,6 +111,7 @@ module DOM {
                 bindInfo.attributes['style'] = style;
                 delete bindInfo.styles;
             }
+            
 
         }
 
@@ -102,6 +128,19 @@ module DOM {
             var el = this.el, cl = el.classList;
             if (cl) { cl.add(className); return; } else { backwardsComp.ensureClass(el, className); }
             
+        }
+
+        public hasClass(className: string): bool {
+            var bI = this.bindInfo;
+            if (!this._rendered) {
+                //TODO: untested code
+                if (!bI.classes) return false;
+                var c = bI.classes;
+                var i = c.indexOf(className);
+                return (i != -1);
+            }
+            var cl = this.el.classList;
+            return cl.contains(className);
         }
 
         public removeClass(className: string){
@@ -133,6 +172,23 @@ module DOM {
                     callback: ParentElementToggleClickHandler,
                 });
             }
+            var ss = bI.selectSettings;
+            if (ss) {
+                Dh.addWindowEventListener({
+                    elX: this,
+                    topicName:'click',
+                    callback: SelectElementClickHandler,
+                });
+                if (ss.selected) {
+                    this.ensureClass(ss.selClassName ? ss.selClassName : 'selected');
+                } else {
+                    if (ss.unselClassName) this.ensureClass(ss.unselClassName);
+                }
+                //if (ss.selClassName) bI.attributes['data-selClassName'] = ss.selClassName;
+                //if (ss.unselClassName) bI.attributes['data-unselClassName'] = ss.unselClassName;
+
+
+            }
             context.output += '<' + bI.tag;
             var attribs = bI.attributes;
             for (var attrib in attribs) {
@@ -159,7 +215,7 @@ module DOM {
         public doInnerRender(context: RenderContext){
             var bI = this.bindInfo;
             
-            var children = bI.kidsGet ? bI.kidsGet() : bI.kids;
+            var children = bI.kidsGet ? bI.kidsGet(this) : bI.kids;
             if (children) {
                 if (!this._kidIds) this._kidIds = [];
                 for (var i = 0, n = children.length; i < n; i++) {
@@ -255,6 +311,24 @@ module DOM {
         public get childrenDOM(): HTMLCollection {
             var elD = this.el;
             return elD ? elD.children : null;
+        }
+
+        public get selected(): bool {
+            var ss = this.bindInfo.selectSettings;
+            if (!ss) return false;
+            var s = ss.selClassName ? ss.selClassName : 'selected';
+            return this.hasClass(s);
+        }
+
+        public set selected(newVal?: bool) {
+            var ss = this.bindInfo.selectSettings;
+            if (!ss) return;
+            var s = ss.selClassName ? ss.selClassName : 'selected';
+            if (newVal === true) {
+                this.ensureClass(s);
+            } else {
+                this.removeClass(s);
+            }
         }
 
         private _rendered: bool;

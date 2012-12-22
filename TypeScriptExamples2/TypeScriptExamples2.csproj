@@ -24,6 +24,10 @@
     <Content Include="app.css" />
     <TypeScriptCompile Include="InputElement.ts" />
     <TypeScriptCompile Include="ie9.ts" />
+    <TypeScriptCompile Include="DataExamples\Books.ts" />
+    <Content Include="DataExamples\Books.js">
+      <DependentUpon>Books.ts</DependentUpon>
+    </Content>
     <Content Include="ie9.js">
       <DependentUpon>ie9.ts</DependentUpon>
     </Content>

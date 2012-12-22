@@ -107,12 +107,9 @@ var Dh;
     Dh.betweenString = betweenString;    
     function getStringPropName(getter) {
         var s = getter.toString();
-        var s2 = s.substringBetween('.').and(';');
+        var s2 = new Dh.betweenString(s, '.').and(';');
         return s2;
     }
     Dh.getStringPropName = getStringPropName;
 })(Dh || (Dh = {}));
-String.prototype.substringBetween = function (searchStart) {
-    return new Dh.betweenString(this, searchStart);
-};
 //@ sourceMappingURL=Dh.js.map

@@ -1,6 +1,7 @@
 ///<reference path="A__PropTests/PropTests.ts" />
 ///<reference path="Dh.ts" />
 ///<reference path="Element.ts" />
+///<reference path="DataExamples/Books.ts"/>
 
 
 
@@ -111,19 +112,7 @@ function doTwoWayBindingTests() {
     tw1.render({ targetDomID: 'TwoWayBinding.Test1.Result' });
 }
 
-interface IChapter {
-    name: string;
-}
 
-interface IBook {
-    title: string;
-    chapters: IChapter[];
-}
-
-interface ISubject {
-    subject: string;
-    books: IBook[];
-}
 
 function doStaticLists() {
     var _ = DOM;
@@ -140,55 +129,60 @@ function doStaticLists() {
         ],
     });
     ul1.render({ targetDomID: 'Lists.Test1.Result' });
-    var json: ISubject = {
-        subject: "JavaScript", books : [
-            {
-                title: "JavaScript Pro", chapters: [
-                    { name: 'chapter 1' }
-                ]
-            }
-        ],
-    };
-    var json: ISubject = {
-        subject: "JavaScript", books: [],
-    };
-    for (var i = 0; i < 10; i++) {
-        var book: IBook = {
-            title: " book " + i, chapters: [],
-        };
-        json.books.push(book);
-        for (var j = 0; j < 10; j++) {
-            var chapter: IChapter = {
-                name: 'chapter ' + j,
-            };
-            book.chapters.push(chapter);
-        }
-    }
-    var chapterToLI:  (chapter : IChapter, i : number) => DOM.ElX = (chapter, i) => {
-        return LI({ text: chapter.name });
-    };
-    var bookToLI: (book: IBook, i: number) => DOM.ElX = (book, i) => {
-        var li = LI({
-            text: book.title,
-            kids: [UL({
-                kids: book.chapters.map(chapterToLI)
-            })]
-        });
-        return li;
-    };
-    //var subjectToLI : (subject : 
-    //json.sections.map(
-    debugger;
+    
+    
+    var jsSubject = DataExamples.GenerateBooks(1000, 1000);
     var ul2 = UL({
-        kids: [LI({ text: json.subject, kids: json.books.map(bookToLI) })],
+        kids: 
+        [LI({ text: jsSubject.subject, 
+            kids: [UL({
+                toggleKidsOnParentClick:true,
+                collapsed:true,
+                kids: jsSubject.books.map(DataExamples.bookToLI),
+            })],
+        })],
     });
     ul2.render({ targetDomID: 'Lists.Test2.Result' });
 }
 
+function doDynamicLists() {
+    var _ = DOM;
+    var UL = _.UL, LI = _.LI;
+
+    var jsSubject = DataExamples.GenerateBooks(10, 10);
+    
+    //var bookGen = function (el: DOM.ElX) : DOM.ElX[] {
+    //    var bI = el.bindInfo;
+    //    var subject = <DataExamples.ISubject>bI.dataContext;
+    //    return subject.books.map(DataExamples.bookToLIDyn);
+    //};
+    
+
+    var ul1 = UL({
+        kids:
+            [LI({
+                selectSettings: {
+                },
+                text: jsSubject.subject,
+                kids: [UL({
+                    dataContext : jsSubject,
+                    toggleKidsOnParentClick:true,
+                    collapsed:true,
+                    kidsGet: DataExamples.bookGen,
+                })],
+                
+            })]
+        
+    });
+    ul1.render({ targetDomID: 'DynamicLists.Test1.Result' });
+}
+
+
 window.onload = () => {
-    doPropTests();
-    doElxTests();
-    doInputTests();
-    doTwoWayBindingTests();
-    doStaticLists();
+    //doPropTests();
+    //doElxTests();
+    //doInputTests();
+    //doTwoWayBindingTests();
+    //doStaticLists();
+    doDynamicLists();
 };

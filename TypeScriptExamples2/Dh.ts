@@ -130,16 +130,17 @@ module Dh {
 
     export function getStringPropName(getter: { (newVal: any): string; }) : string {
         var s = getter.toString();
-        var s2 = s.substringBetween('.').and(';');
+        //var s2 = s.substringBetween('.').and(';');
+        var s2 = new Dh.betweenString(s, '.').and(';');
         return s2;
     }
 }
 
-interface String {
-    substringBetween(searchStart: string): Dh.betweenString;
-}
+//interface String {
+//    substringBetween(searchStart: string): Dh.betweenString;
+//}
 
-String.prototype.substringBetween = function(searchStart: string): Dh.betweenString{
-    return new Dh.betweenString(this, searchStart);
-}
+//String.prototype.substringBetween = function(searchStart: string): Dh.betweenString{
+//    return new Dh.betweenString(this, searchStart);
+//}
 

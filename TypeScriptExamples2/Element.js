@@ -24,6 +24,10 @@ var DOM;
             }
         }
     }
+    function SelectElementClickHandler(tEvent) {
+        var elX = tEvent.elX;
+        elX.selected = !elX.selected;
+    }
     var ElX = (function () {
         function ElX(bindInfo) {
             this.bindInfo = bindInfo;
@@ -72,6 +76,19 @@ var DOM;
                 backwardsComp.ensureClass(el, className);
             }
         };
+        ElX.prototype.hasClass = function (className) {
+            var bI = this.bindInfo;
+            if(!this._rendered) {
+                if(!bI.classes) {
+                    return false;
+                }
+                var c = bI.classes;
+                var i = c.indexOf(className);
+                return (i != -1);
+            }
+            var cl = this.el.classList;
+            return cl.contains(className);
+        };
         ElX.prototype.removeClass = function (className) {
             var bI = this.bindInfo;
             if(!this._rendered) {
@@ -103,6 +120,21 @@ var DOM;
                     callback: ParentElementToggleClickHandler
                 });
             }
+            var ss = bI.selectSettings;
+            if(ss) {
+                Dh.addWindowEventListener({
+                    elX: this,
+                    topicName: 'click',
+                    callback: SelectElementClickHandler
+                });
+                if(ss.selected) {
+                    this.ensureClass(ss.selClassName ? ss.selClassName : 'selected');
+                } else {
+                    if(ss.unselClassName) {
+                        this.ensureClass(ss.unselClassName);
+                    }
+                }
+            }
             context.output += '<' + bI.tag;
             var attribs = bI.attributes;
             for(var attrib in attribs) {
@@ -129,7 +161,7 @@ var DOM;
         };
         ElX.prototype.doInnerRender = function (context) {
             var bI = this.bindInfo;
-            var children = bI.kidsGet ? bI.kidsGet() : bI.kids;
+            var children = bI.kidsGet ? bI.kidsGet(this) : bI.kids;
             if(children) {
                 if(!this._kidIds) {
                     this._kidIds = [];
@@ -237,6 +269,30 @@ var DOM;
             get: function () {
                 var elD = this.el;
                 return elD ? elD.children : null;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ElX.prototype, "selected", {
+            get: function () {
+                var ss = this.bindInfo.selectSettings;
+                if(!ss) {
+                    return false;
+                }
+                var s = ss.selClassName ? ss.selClassName : 'selected';
+                return this.hasClass(s);
+            },
+            set: function (newVal) {
+                var ss = this.bindInfo.selectSettings;
+                if(!ss) {
+                    return;
+                }
+                var s = ss.selClassName ? ss.selClassName : 'selected';
+                if(newVal === true) {
+                    this.ensureClass(s);
+                } else {
+                    this.removeClass(s);
+                }
             },
             enumerable: true,
             configurable: true

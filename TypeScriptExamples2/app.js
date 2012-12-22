@@ -149,59 +149,18 @@ function doStaticLists() {
     ul1.render({
         targetDomID: 'Lists.Test1.Result'
     });
-    var json = {
-        subject: "JavaScript",
-        books: [
-            {
-                title: "JavaScript Pro",
-                chapters: [
-                    {
-                        name: 'chapter 1'
-                    }
-                ]
-            }
-        ]
-    };
-    var json = {
-        subject: "JavaScript",
-        books: []
-    };
-    for(var i = 0; i < 10; i++) {
-        var book = {
-            title: " book " + i,
-            chapters: []
-        };
-        json.books.push(book);
-        for(var j = 0; j < 10; j++) {
-            var chapter = {
-                name: 'chapter ' + j
-            };
-            book.chapters.push(chapter);
-        }
-    }
-    var chapterToLI = function (chapter, i) {
-        return LI({
-            text: chapter.name
-        });
-    };
-    var bookToLI = function (book, i) {
-        var li = LI({
-            text: book.title,
-            kids: [
-                UL({
-                    kids: book.chapters.map(chapterToLI)
-                })
-            ]
-        });
-        return li;
-    };
-    debugger;
-
+    var jsSubject = DataExamples.GenerateBooks(1000, 1000);
     var ul2 = UL({
         kids: [
             LI({
-                text: json.subject,
-                kids: json.books.map(bookToLI)
+                text: jsSubject.subject,
+                kids: [
+                    UL({
+                        toggleKidsOnParentClick: true,
+                        collapsed: true,
+                        kids: jsSubject.books.map(DataExamples.bookToLI)
+                    })
+                ]
             })
         ]
     });
@@ -209,11 +168,32 @@ function doStaticLists() {
         targetDomID: 'Lists.Test2.Result'
     });
 }
+function doDynamicLists() {
+    var _ = DOM;
+    var UL = _.UL, LI = _.LI;
+    var jsSubject = DataExamples.GenerateBooks(10, 10);
+    var ul1 = UL({
+        kids: [
+            LI({
+                selectSettings: {
+                },
+                text: jsSubject.subject,
+                kids: [
+                    UL({
+                        dataContext: jsSubject,
+                        toggleKidsOnParentClick: true,
+                        collapsed: true,
+                        kidsGet: DataExamples.bookGen
+                    })
+                ]
+            })
+        ]
+    });
+    ul1.render({
+        targetDomID: 'DynamicLists.Test1.Result'
+    });
+}
 window.onload = function () {
-    doPropTests();
-    doElxTests();
-    doInputTests();
-    doTwoWayBindingTests();
-    doStaticLists();
+    doDynamicLists();
 };
 //@ sourceMappingURL=app.js.map

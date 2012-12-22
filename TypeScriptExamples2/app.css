@@ -10,3 +10,7 @@ span {
 .collapsed > * {
     display:none;
 }
+
+.selected {
+    background-color:red;
+}
