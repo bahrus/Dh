@@ -2,7 +2,9 @@ var DataExamples;
 (function (DataExamples) {
     DataExamples.chapterToLI = function (chapter, i) {
         return DOM.LI({
-            text: chapter.name
+            text: chapter.name,
+            selectSettings: {
+            }
         });
     };
     DataExamples.bookToLI = function (book, i) {

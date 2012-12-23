@@ -78,11 +78,24 @@ module DOM {
     function SelectElementClickHandler(tEvent: Dh.ITopicEvent) {
         var elX = tEvent.elX;
         var ss = elX.bindInfo.selectSettings;
+        var ssss = ss.selectSet;
         var newVal = !elX.selected;
-        if (ss) {
-            if(ss.selectSet) ss.selectSet(newVal);
+        var grp = ss.group ? ss.group : 'global';
+        if(!ss) return;
+        if(ssss) ssss(newVal);
+            
+        var prevSelected = Dh.selectGroups[grp];
+        if (prevSelected) {
+            for (var i = 0, n = prevSelected.length; i < n; i++) {
+                var other = prevSelected[i];
+                other.selected = false;
+            }
         }
+        prevSelected = [];
+        Dh.selectGroups[grp] = prevSelected;
         elX.selected = newVal;
+        if (newVal) { prevSelected.push(elX); }
+             
     }
 
     export class ElX {

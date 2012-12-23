@@ -17,7 +17,7 @@ module DataExamples {
     }
 
     export var chapterToLI:  (chapter : IChapter, i : number) => DOM.ElX = (chapter, i) => {
-        return DOM.LI({ text: chapter.name });
+        return DOM.LI({ text: chapter.name, selectSettings: {}, });
     };
 
      

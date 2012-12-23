@@ -6,6 +6,8 @@ var Dh;
     };
     var windowEventListeners = {
     };
+    Dh.selectGroups = {
+    };
     function addWindowEventListener(settings) {
         var evtName = settings.topicName;
         var listeners = windowEventListeners[evtName];

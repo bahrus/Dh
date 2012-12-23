@@ -161,8 +161,6 @@ function doDynamicLists() {
     var ul1 = UL({
         kids:
             [LI({
-                selectSettings: {
-                },
                 text: jsSubject.subject,
                 kids: [UL({
                     dataContext : jsSubject,

@@ -33,6 +33,7 @@ module Dh {
     export var objectLookup: { [name: string]: any; } = {};
     var objectListeners: { [name: string]: { (newVal: string): void; }[]; } = {}; 
     var windowEventListeners: { [name: string]: { (IListenForTopic): void; }[]; } = {};
+    export var selectGroups: { [name: string]: DOM.ElX[]; } = {};
 
     export function addWindowEventListener(settings: IListenForTopic) {
         var evtName = settings.topicName;
