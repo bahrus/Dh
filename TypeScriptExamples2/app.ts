@@ -145,17 +145,13 @@ function doStaticLists() {
     ul2.render({ targetDomID: 'Lists.Test2.Result' });
 }
 
+var doDynamicLists_json : DataExamples.ISubject;
 function doDynamicLists() {
     var _ = DOM;
     var UL = _.UL, LI = _.LI;
 
     var jsSubject = DataExamples.GenerateBooks(10, 10);
-    
-    //var bookGen = function (el: DOM.ElX) : DOM.ElX[] {
-    //    var bI = el.bindInfo;
-    //    var subject = <DataExamples.ISubject>bI.dataContext;
-    //    return subject.books.map(DataExamples.bookToLIDyn);
-    //};
+    doDynamicLists_json = jsSubject;
     
 
     var ul1 = UL({
@@ -172,6 +168,22 @@ function doDynamicLists() {
             })]
         
     });
+    Dh.addSelectionChangeListener('global', () => {
+        window.alert('iah');
+        var selectedChapters: DataExamples.IChapter[] = [];
+        doDynamicLists_json.books.forEach(book => {
+            book.chapters.forEach(chapter => {
+                if (chapter.selected) {
+                    selectedChapters.push(chapter);
+                }
+            });
+        });
+        var ul2 = UL({
+            kids: selectedChapters.map(ch => DataExamples.chapterToLI(ch)),
+        });
+        ul2.render({ targetDomID: 'DynamicLists.Test1.Result.Detail' });
+    });
+
     ul1.render({ targetDomID: 'DynamicLists.Test1.Result' });
 }
 

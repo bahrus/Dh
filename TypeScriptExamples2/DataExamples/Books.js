@@ -3,7 +3,12 @@ var DataExamples;
     DataExamples.chapterToLI = function (chapter, i) {
         return DOM.LI({
             text: chapter.name,
+            dataContext: chapter,
             selectSettings: {
+                selectSet: function (elx, newVal) {
+                    var chp = elx.bindInfo.dataContext;
+                    chp.selected = true;
+                }
             }
         });
     };

@@ -168,10 +168,12 @@ function doStaticLists() {
         targetDomID: 'Lists.Test2.Result'
     });
 }
+var doDynamicLists_json;
 function doDynamicLists() {
     var _ = DOM;
     var UL = _.UL, LI = _.LI;
     var jsSubject = DataExamples.GenerateBooks(10, 10);
+    doDynamicLists_json = jsSubject;
     var ul1 = UL({
         kids: [
             LI({
@@ -186,6 +188,25 @@ function doDynamicLists() {
                 ]
             })
         ]
+    });
+    Dh.addSelectionChangeListener('global', function () {
+        window.alert('iah');
+        var selectedChapters = [];
+        doDynamicLists_json.books.forEach(function (book) {
+            book.chapters.forEach(function (chapter) {
+                if(chapter.selected) {
+                    selectedChapters.push(chapter);
+                }
+            });
+        });
+        var ul2 = UL({
+            kids: selectedChapters.map(function (ch) {
+                return DataExamples.chapterToLI(ch);
+            })
+        });
+        ul2.render({
+            targetDomID: 'DynamicLists.Test1.Result.Detail'
+        });
     });
     ul1.render({
         targetDomID: 'DynamicLists.Test1.Result'

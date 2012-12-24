@@ -14,6 +14,11 @@ module Dh {
         callback(newVal: string): void;
     }
 
+    export interface IListenForSelectionChange {
+        groupName: string;
+        callback(): void;
+    }
+
     export interface IListenForTopic {
         topicName: string;
         conditionForNotification?(tEvent: ITopicEvent): bool;
@@ -33,7 +38,63 @@ module Dh {
     export var objectLookup: { [name: string]: any; } = {};
     var objectListeners: { [name: string]: { (newVal: string): void; }[]; } = {}; 
     var windowEventListeners: { [name: string]: { (IListenForTopic): void; }[]; } = {};
-    export var selectGroups: { [name: string]: DOM.ElX[]; } = {};
+    var selectionChangeListeners : { [name: string]: { (); void; } []; } = { };
+
+    export function addSelectionChangeListener(name: string, callBack: () => void ) {
+        var listeners = selectionChangeListeners[name];
+        if (!listeners) {
+            listeners = [];
+            selectionChangeListeners[name] = listeners;
+        }
+        listeners.push(callBack);
+    }
+
+    function notifySelectionChange(name: string) {
+        var scls = selectionChangeListeners[name];
+        if(!scls) return;
+        for (var i = 0, n = scls.length; i < n; i++) {
+            var scl = scls[i];
+            scl();
+        }
+    }
+
+    var selectGroups: { [name: string]: DOM.ElX[]; } = {};
+
+    export function getSelections(groupName: string) {
+        return selectGroups[groupName];
+    }
+
+    export function clearSelections(groupName: string, notify: bool) {
+        var sel = selectGroups[groupName];
+        if(!sel) return;
+        for (var i = 0, n = sel.length; i < n; i++) {
+            var other = sel[i];
+            other.selected = false;
+        }
+        delete selectGroups[groupName];
+        if (notify) {
+            notifySelectionChange(groupName);
+        }
+    }
+
+    export function setSelection(groupName: string, elX: DOM.ElX) {
+        clearSelections(groupName, false);
+        addSelection(groupName, elX, true);
+    }
+
+    export function addSelection(groupName: string, elX: DOM.ElX, notify: bool) {
+        var sel = selectGroups[groupName];
+        if (!sel) {sel = []; selectGroups[groupName] = sel;}
+        elX.selected = true;
+        sel.push(elX);
+        if (notify) notifySelectionChange(groupName);
+    }
+
+    export function removeSelection(groupName: string, elX: DOM.ElX, notify: bool) {
+        var sel = selectGroups[groupName];
+        if(!sel) return;
+        debugger;//TODO:  remove
+    }
 
     export function addWindowEventListener(settings: IListenForTopic) {
         var evtName = settings.topicName;

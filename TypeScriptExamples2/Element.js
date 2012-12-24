@@ -27,27 +27,14 @@ var DOM;
     function SelectElementClickHandler(tEvent) {
         var elX = tEvent.elX;
         var ss = elX.bindInfo.selectSettings;
-        var ssss = ss.selectSet;
         var newVal = !elX.selected;
         var grp = ss.group ? ss.group : 'global';
         if(!ss) {
             return;
         }
-        if(ssss) {
-            ssss(newVal);
-        }
-        var prevSelected = Dh.selectGroups[grp];
-        if(prevSelected) {
-            for(var i = 0, n = prevSelected.length; i < n; i++) {
-                var other = prevSelected[i];
-                other.selected = false;
-            }
-        }
-        prevSelected = [];
-        Dh.selectGroups[grp] = prevSelected;
-        elX.selected = newVal;
+        Dh.clearSelections(grp, false);
         if(newVal) {
-            prevSelected.push(elX);
+            Dh.setSelection(grp, elX);
         }
     }
     var ElX = (function () {
@@ -315,6 +302,10 @@ var DOM;
                 } else {
                     this.removeClass(s);
                 }
+                var ssss = ss.selectSet;
+                if(ssss) {
+                    ssss(this, newVal);
+                }
             },
             enumerable: true,
             configurable: true
@@ -330,8 +321,6 @@ var DOM;
             }
         };
         ElX.prototype.notifyTextChange = function () {
-            debugger;
-
             if(!this._rendered) {
                 return;
             }

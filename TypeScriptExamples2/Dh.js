@@ -6,8 +6,75 @@ var Dh;
     };
     var windowEventListeners = {
     };
-    Dh.selectGroups = {
+    var selectionChangeListeners = {
     };
+    function addSelectionChangeListener(name, callBack) {
+        var listeners = selectionChangeListeners[name];
+        if(!listeners) {
+            listeners = [];
+            selectionChangeListeners[name] = listeners;
+        }
+        listeners.push(callBack);
+    }
+    Dh.addSelectionChangeListener = addSelectionChangeListener;
+    function notifySelectionChange(name) {
+        var scls = selectionChangeListeners[name];
+        if(!scls) {
+            return;
+        }
+        for(var i = 0, n = scls.length; i < n; i++) {
+            var scl = scls[i];
+            scl();
+        }
+    }
+    var selectGroups = {
+    };
+    function getSelections(groupName) {
+        return selectGroups[groupName];
+    }
+    Dh.getSelections = getSelections;
+    function clearSelections(groupName, notify) {
+        var sel = selectGroups[groupName];
+        if(!sel) {
+            return;
+        }
+        for(var i = 0, n = sel.length; i < n; i++) {
+            var other = sel[i];
+            other.selected = false;
+        }
+        delete selectGroups[groupName];
+        if(notify) {
+            notifySelectionChange(groupName);
+        }
+    }
+    Dh.clearSelections = clearSelections;
+    function setSelection(groupName, elX) {
+        clearSelections(groupName, false);
+        addSelection(groupName, elX, true);
+    }
+    Dh.setSelection = setSelection;
+    function addSelection(groupName, elX, notify) {
+        var sel = selectGroups[groupName];
+        if(!sel) {
+            sel = [];
+            selectGroups[groupName] = sel;
+        }
+        elX.selected = true;
+        sel.push(elX);
+        if(notify) {
+            notifySelectionChange(groupName);
+        }
+    }
+    Dh.addSelection = addSelection;
+    function removeSelection(groupName, elX, notify) {
+        var sel = selectGroups[groupName];
+        if(!sel) {
+            return;
+        }
+        debugger;
+
+    }
+    Dh.removeSelection = removeSelection;
     function addWindowEventListener(settings) {
         var evtName = settings.topicName;
         var listeners = windowEventListeners[evtName];

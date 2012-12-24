@@ -41,7 +41,7 @@ module DOM {
         selected?: bool;
         //dynamic
         selectGet? (): bool;
-        selectSet? (newVal: bool): void;
+        selectSet? (elX : ElX, newVal: bool): void;
         group?: string;
         selClassName?: string;
         partialSelClassName?: string;
@@ -78,23 +78,16 @@ module DOM {
     function SelectElementClickHandler(tEvent: Dh.ITopicEvent) {
         var elX = tEvent.elX;
         var ss = elX.bindInfo.selectSettings;
-        var ssss = ss.selectSet;
+        //var ssss = ss.selectSet;
         var newVal = !elX.selected;
         var grp = ss.group ? ss.group : 'global';
         if(!ss) return;
-        if(ssss) ssss(newVal);
+        //if(ssss) ssss(newVal);
             
-        var prevSelected = Dh.selectGroups[grp];
-        if (prevSelected) {
-            for (var i = 0, n = prevSelected.length; i < n; i++) {
-                var other = prevSelected[i];
-                other.selected = false;
-            }
-        }
-        prevSelected = [];
-        Dh.selectGroups[grp] = prevSelected;
-        elX.selected = newVal;
-        if (newVal) { prevSelected.push(elX); }
+        Dh.clearSelections(grp, false);
+        //Dh.selectGroups[grp] = prevSelected;
+        //elX.selected = newVal;
+        if (newVal) { Dh.setSelection(grp, elX)}
              
     }
 
@@ -342,6 +335,8 @@ module DOM {
             } else {
                 this.removeClass(s);
             }
+            var ssss = ss.selectSet;
+            if(ssss) ssss(this, newVal);
         }
 
         private _rendered: bool;
@@ -365,7 +360,6 @@ module DOM {
         //}
 
         public notifyTextChange(/*getter: Dh.ISVGetter*/) {
-            debugger;
             if(!this._rendered) return;
             var bI = this.bindInfo;
             if(!bI.textGet) return;

@@ -4,6 +4,7 @@
 module DataExamples {
     export interface IChapter {
         name: string;
+        selected?: bool;
     }
 
     export interface IBook {
@@ -17,7 +18,14 @@ module DataExamples {
     }
 
     export var chapterToLI:  (chapter : IChapter, i : number) => DOM.ElX = (chapter, i) => {
-        return DOM.LI({ text: chapter.name, selectSettings: {}, });
+        return DOM.LI({ text: chapter.name, dataContext: chapter,
+            selectSettings: {
+                selectSet: (elx, newVal) => {
+                    var chp = <IChapter> elx.bindInfo.dataContext;
+                    chp.selected = true;
+                }
+            }}
+        );
     };
 
      
