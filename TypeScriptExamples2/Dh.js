@@ -8,6 +8,18 @@ var Dh;
     };
     var selectionChangeListeners = {
     };
+    var selectGroups = {
+    };
+    function getGlobalStorage() {
+        return {
+            objectLookup: Dh.objectLookup,
+            objectListeners: objectListeners,
+            windowEventListeners: windowEventListeners,
+            selectionChangeListeners: selectionChangeListeners,
+            selectGroups: selectGroups
+        };
+    }
+    Dh.getGlobalStorage = getGlobalStorage;
     function addSelectionChangeListener(name, callBack) {
         var listeners = selectionChangeListeners[name];
         if(!listeners) {
@@ -27,8 +39,6 @@ var Dh;
             scl();
         }
     }
-    var selectGroups = {
-    };
     function getSelections(groupName) {
         return selectGroups[groupName];
     }
@@ -88,26 +98,39 @@ var Dh;
                 settings.elXID = settings.elX.ID;
                 delete settings.elX;
             }
-            condition = ElementMatchesID;
+            settings.conditionForNotification = ElementMatchesID;
         }
-        var listener = function (ev) {
+        listeners.push(settings);
+        window.addEventListener(evtName, windowEventListener);
+    }
+    Dh.addWindowEventListener = addWindowEventListener;
+    function windowEventListener(ev) {
+        var evtName = ev.type;
+        var topicListenersSettings = windowEventListeners[evtName];
+        if(!topicListenersSettings) {
+            return;
+        }
+        for(var i = 0, n = topicListenersSettings.length; i < n; i++) {
+            var settings = topicListenersSettings[i];
+            var condition = settings.conditionForNotification;
             var el = (ev.target);
             var topicEvent = settings;
             topicEvent.event = ev;
             if(!condition(topicEvent)) {
-                return;
+                delete topicEvent.event;
+                continue;
             }
             var elX = Dh.objectLookup[topicEvent.elXID];
             if(!elX) {
-                return;
+                delete topicEvent.event;
+                continue;
             }
             topicEvent.elX = elX;
             topicEvent.callback(topicEvent);
             delete topicEvent.elX;
-        };
-        window.addEventListener(settings.topicName, listener);
+            delete topicEvent.event;
+        }
     }
-    Dh.addWindowEventListener = addWindowEventListener;
     function ElementMatchesID(tEvent) {
         var el = (tEvent.event.target);
         return el.id === tEvent.elXID;
@@ -128,6 +151,21 @@ var Dh;
         return id;
     }
     Dh.GUID = GUID;
+    function cleanUp(d) {
+        var all = d.all;
+        if(!all) {
+            all = d.getElementsByTagName('*');
+        }
+        for(var i = 0, n = all.length; i < n; i++) {
+            var elT = all[i];
+            var elX = Dh.objectLookup[elT.id];
+            delete elX.kids;
+            if(elT.id) {
+                delete Dh.objectLookup[elT.id];
+            }
+        }
+    }
+    Dh.cleanUp = cleanUp;
     function ListenForSVChange(listener) {
         var obj = listener.obj;
         var objId = GUID(obj);

@@ -236,7 +236,6 @@ module DOM {
 
         public render(settings: IRenderContextProps) {
             var renderContext = new RenderContext(settings);
-            this.doRender(renderContext);
             var s = renderContext.settings;
             var target: HTMLElement;
             if (s.targetDom) {
@@ -244,6 +243,12 @@ module DOM {
             } else {
                 target = document.getElementById(renderContext.settings.targetDomID);
             }
+            Dh.cleanUp(target);
+            this.doRender(renderContext);
+            
+            //clean up
+            
+            
             target.innerHTML = renderContext.output;
             var els = renderContext.elements;
             for (var i = els.length - 1; i > -1; i--) {
@@ -351,6 +356,7 @@ module DOM {
                 delete this._parentId;
                 delete this._kidIds;
             }
+            delete this.parentElement;
         }
 
         //public notifyInnerAddedToDOM(){

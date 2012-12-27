@@ -190,7 +190,6 @@ function doDynamicLists() {
         ]
     });
     Dh.addSelectionChangeListener('global', function () {
-        window.alert('iah');
         var selectedChapters = [];
         doDynamicLists_json.books.forEach(function (book) {
             book.chapters.forEach(function (chapter) {
@@ -201,7 +200,7 @@ function doDynamicLists() {
         });
         var ul2 = UL({
             kids: selectedChapters.map(function (ch) {
-                return DataExamples.chapterToLI(ch);
+                return DataExamples.chapterToLI2(ch);
             })
         });
         ul2.render({

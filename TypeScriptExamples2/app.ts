@@ -169,7 +169,6 @@ function doDynamicLists() {
         
     });
     Dh.addSelectionChangeListener('global', () => {
-        window.alert('iah');
         var selectedChapters: DataExamples.IChapter[] = [];
         doDynamicLists_json.books.forEach(book => {
             book.chapters.forEach(chapter => {
@@ -179,7 +178,7 @@ function doDynamicLists() {
             });
         });
         var ul2 = UL({
-            kids: selectedChapters.map(ch => DataExamples.chapterToLI(ch)),
+            kids: selectedChapters.map(ch => DataExamples.chapterToLI2(ch)),
         });
         ul2.render({ targetDomID: 'DynamicLists.Test1.Result.Detail' });
     });

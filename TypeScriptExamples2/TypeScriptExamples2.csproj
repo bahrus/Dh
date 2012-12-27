@@ -34,6 +34,7 @@
     <Content Include="InputElement.js">
       <DependentUpon>InputElement.ts</DependentUpon>
     </Content>
+    <Content Include="MemLeakTest.html" />
     <Content Include="WebForm1.aspx" />
     <TypeScriptCompile Include="A__PropTests\PropTests.ts" />
     <Content Include="A__PropTests\PropTests.js">

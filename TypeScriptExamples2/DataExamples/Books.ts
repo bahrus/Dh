@@ -22,10 +22,17 @@ module DataExamples {
             selectSettings: {
                 selectSet: (elx, newVal) => {
                     var chp = <IChapter> elx.bindInfo.dataContext;
-                    chp.selected = true;
+                    chp.selected = newVal;
                 }
             }}
         );
+    };
+
+    export var chapterToLI2: (chapter: IChapter, i: number) => DOM.ElX = (chapter, i) => {
+        return DOM.LI({
+            text: chapter.name, dataContext: chapter,
+        
+        });
     };
 
      

@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script>
+        var counter = 0;
+        function insertNewResult() {
+            var s = '<ul><li>this is a test ' + counter + '</li></ul>';
+            var el = document.getElementById('result');
+            el.innerHTML = s;
+            counter++;
+        }
+    </script>
+</head>
+<body>
+    <div id="result"></div>
+    <input type="button" value="click" onclick="insertNewResult()"/>
+</body>
+</html>

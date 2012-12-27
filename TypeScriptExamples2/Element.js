@@ -186,7 +186,6 @@ var DOM;
         };
         ElX.prototype.render = function (settings) {
             var renderContext = new RenderContext(settings);
-            this.doRender(renderContext);
             var s = renderContext.settings;
             var target;
             if(s.targetDom) {
@@ -194,6 +193,8 @@ var DOM;
             } else {
                 target = document.getElementById(renderContext.settings.targetDomID);
             }
+            Dh.cleanUp(target);
+            this.doRender(renderContext);
             target.innerHTML = renderContext.output;
             var els = renderContext.elements;
             for(var i = els.length - 1; i > -1; i--) {
@@ -319,6 +320,7 @@ var DOM;
                 delete this._parentId;
                 delete this._kidIds;
             }
+            delete this.parentElement;
         };
         ElX.prototype.notifyTextChange = function () {
             if(!this._rendered) {

@@ -37,8 +37,20 @@ module Dh {
 
     export var objectLookup: { [name: string]: any; } = {};
     var objectListeners: { [name: string]: { (newVal: string): void; }[]; } = {}; 
-    var windowEventListeners: { [name: string]: { (IListenForTopic): void; }[]; } = {};
+    //export var windowEventListeners: { [name: string]: { (IListenForTopic): void; }[]; } = {};
+    var windowEventListeners: { [name: string]: IListenForTopic[]; } = {};
     var selectionChangeListeners : { [name: string]: { (); void; } []; } = { };
+    var selectGroups: { [name: string]: DOM.ElX[]; } = {};
+
+    export function getGlobalStorage() {
+        return {
+            objectLookup: objectLookup,
+            objectListeners: objectListeners,
+            windowEventListeners: windowEventListeners,
+            selectionChangeListeners: selectionChangeListeners,
+            selectGroups: selectGroups,
+        };
+    }
 
     export function addSelectionChangeListener(name: string, callBack: () => void ) {
         var listeners = selectionChangeListeners[name];
@@ -58,7 +70,7 @@ module Dh {
         }
     }
 
-    var selectGroups: { [name: string]: DOM.ElX[]; } = {};
+    
 
     export function getSelections(groupName: string) {
         return selectGroups[groupName];
@@ -110,23 +122,52 @@ module Dh {
                 settings.elXID = settings.elX.ID;
                 delete settings.elX;
             }
-            condition = ElementMatchesID;
+            //condition = ElementMatchesID;
+            settings.conditionForNotification = ElementMatchesID
         }
-        var listener = function (ev: Event) {
+        //var listener = function (ev: Event) {
+        //    var el = <HTMLElement>(ev.target);
+        //    var topicEvent: ITopicEvent = <ITopicEvent> settings;
+        //    topicEvent.event = ev;
+        //    if(!condition(topicEvent)) return;
+        //    var elX = objectLookup[topicEvent.elXID];
+        //    if(!elX) return; //todo:  remove topic handler
+        //    topicEvent.elX = elX;
+        //    topicEvent.callback(topicEvent);
+        //    delete topicEvent.elX;
+        //}
+        //listeners.push(listener);
+        listeners.push(settings);
+        window.addEventListener(evtName, windowEventListener);
+        //window.addEventListener(settings.topicName, listener);
+    }
+
+    function windowEventListener (ev: Event) {
+        var evtName = ev.type;
+        var topicListenersSettings = windowEventListeners[evtName];
+        if(!topicListenersSettings) return;
+        for (var i = 0, n = topicListenersSettings.length; i < n; i++) {
+            var settings = topicListenersSettings[i];
+            var condition = settings.conditionForNotification;
             var el = <HTMLElement>(ev.target);
             var topicEvent: ITopicEvent = <ITopicEvent> settings;
             topicEvent.event = ev;
-            if(!condition(topicEvent)) return;
+            if (!condition(topicEvent)) {
+                delete topicEvent.event;
+                continue;
+            }
             var elX = objectLookup[topicEvent.elXID];
-            if(!elX) return; //todo:  remove topic handler
+            if (!elX) {
+                delete topicEvent.event;
+                continue; //todo:  remove topic handler
+            }
             topicEvent.elX = elX;
+            
             topicEvent.callback(topicEvent);
             delete topicEvent.elX;
+            delete topicEvent.event;
         }
-        window.addEventListener(settings.topicName, listener);
     }
-
-    
 
     function ElementMatchesID(tEvent: ITopicEvent) {
         var el = <HTMLElement>(tEvent.event.target);
@@ -147,6 +188,18 @@ module Dh {
             objectLookup[id] = obj;
         }
         return id;
+    }
+
+    export function cleanUp(d: HTMLElement) {
+        var all : any = d.all;
+        if (!all) all = d.getElementsByTagName('*');
+        
+        for (var i = 0, n = all.length; i < n; i++) {
+            var elT = <HTMLElement> all[i];
+            var elX = objectLookup[elT.id];
+            delete elX.kids;
+            if (elT.id) delete objectLookup[elT.id];
+        }
     }
 
     export function ListenForSVChange(listener : IListenForStringValueChange){

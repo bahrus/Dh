@@ -7,9 +7,15 @@ var DataExamples;
             selectSettings: {
                 selectSet: function (elx, newVal) {
                     var chp = elx.bindInfo.dataContext;
-                    chp.selected = true;
+                    chp.selected = newVal;
                 }
             }
+        });
+    };
+    DataExamples.chapterToLI2 = function (chapter, i) {
+        return DOM.LI({
+            text: chapter.name,
+            dataContext: chapter
         });
     };
     DataExamples.bookToLI = function (book, i) {
