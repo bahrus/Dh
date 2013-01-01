@@ -152,12 +152,12 @@ var DOM;
             var dynamicAttribs = bI.dynamicAttributes;
             if(dynamicAttribs) {
                 for(var dynamicAttrib in dynamicAttribs) {
-                    context.output += ' ' + dynamicAttrib + '="' + dynamicAttribs[dynamicAttrib]() + '"';
+                    context.output += ' ' + dynamicAttrib + '="' + dynamicAttribs[dynamicAttrib](this) + '"';
                 }
             }
             context.output += '>';
             if(bI.textGet) {
-                context.output += bI.textGet();
+                context.output += bI.textGet(this);
             } else {
                 if(bI.text) {
                     context.output += bI.text;
@@ -201,6 +201,9 @@ var DOM;
                 var el = els[i];
                 el.notifyAddedToDOM();
             }
+            delete renderContext.elements;
+            var s = renderContext.settings;
+            delete s.targetDom;
         };
         ElX.prototype.innerRender = function (settings) {
             if(this._innerRendered) {
@@ -330,7 +333,7 @@ var DOM;
             if(!bI.textGet) {
                 return;
             }
-            var newVal = bI.textGet();
+            var newVal = bI.textGet(this);
             var h = this.el;
             if(h.innerHTML === newVal) {
                 return;
@@ -351,7 +354,7 @@ var DOM;
                 return;
             }
             var htmlElem = this.el;
-            var sVal = elemPropGetter();
+            var sVal = elemPropGetter(this);
             if(htmlElem.attributes[propName] != sVal) {
                 htmlElem.attributes[propName] = sVal;
             }
@@ -394,5 +397,9 @@ var DOM;
         return new DOM.InputElement(bindInfo);
     }
     DOM.Input = Input;
+    function LabelForInput(bindInfo) {
+        return new DOM.InputLabelElement(bindInfo);
+    }
+    DOM.LabelForInput = LabelForInput;
 })(DOM || (DOM = {}));
 //@ sourceMappingURL=Element.js.map

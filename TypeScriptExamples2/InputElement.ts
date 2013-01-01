@@ -3,11 +3,23 @@
 
 module DOM {
 
+    export interface IInputBinder extends IDOMBinder{
+        type?: string;
+        value?: string;
+        valueGet? (ie: InputElement): string;
+        valueSet? (ie: InputElement, newVal: string): void;
+        checkedValueSet? (ie: InputElement, oldVal: string, newVal: string): void;
+    }
+
+    export interface IInputLabelBinder extends IDOMBinder {
+        forElX: ElX;
+    }
+
     function InputElementChangeHandler(tEvent: Dh.ITopicEvent){
         var newValue = tEvent.event.target['value'];
         var ie = <InputElement> tEvent.elX;
         if(!newValue || !ie) return;
-        ie.bindInfo.valueSet(newValue);
+        ie.bindInfo.valueSet(ie, newValue);
     }
 
     export class InputElement extends ElX {
@@ -15,7 +27,7 @@ module DOM {
             super(bindInfo);
             bindInfo.tag = "input";
             if (bindInfo.valueGet) {
-                this.value = bindInfo.valueGet();
+                this.value = bindInfo.valueGet(this);
             } else {
                 this.value = bindInfo.value;
             }
@@ -55,5 +67,25 @@ module DOM {
         }
     }
 
+    export class InputLabelElement extends ElX {
+        constructor(public bindInfo: IInputLabelBinder) {
+            super(bindInfo);
+            bindInfo.tag = 'label';
+            this.for = bindInfo.forElX.ID;
+            delete bindInfo.forElX;
+        }
+
+        //private _forElXID: string;
+
+        get for(): string {
+            return this.bindInfo.attributes['for'];
+        }
+
+        set for(sVal: string) {
+            if (sVal) {
+                this.bindInfo.attributes['for'] = sVal;
+            }
+        }
+    }
 }
 

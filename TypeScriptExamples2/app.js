@@ -54,12 +54,12 @@ function doPropTests() {
     propTest3.Prop2 = 'new value';
 }
 function doInputTests() {
-    var _ = DOM;
+    var _ = DOM, Input = _.Input, Label = _.LabelForInput;
     var json = {
         Prop1: 'iah',
         Prop2: 'Prop Val 2'
     };
-    var in1 = _.Input({
+    var in1 = Input({
         value: "Default Text Value",
         type: 'text'
     });
@@ -67,7 +67,7 @@ function doInputTests() {
         targetDomID: 'Input.Test1.Result'
     });
     var propTest1 = new PropTests.Test2(json);
-    var in2 = _.Input({
+    var in2 = Input({
         valueGet: function () {
             return propTest1.Prop2;
         },
@@ -77,28 +77,35 @@ function doInputTests() {
         targetDomID: 'Input.Test2.Result'
     });
     propTest1.Prop2 = 'new Val';
+    var lbl2 = Label({
+        text: 'label test',
+        forElX: in2
+    });
+    lbl2.render({
+        targetDomID: 'Input.Label2.Result'
+    });
 }
 function doTwoWayBindingTests() {
-    var _ = DOM;
+    var _ = DOM, Div = _.Div, Input = _.Input;
     var json = {
         Prop1: 'iah',
         Prop2: 'Prop Val 2'
     };
     var propTest1 = new PropTests.Test2(json);
-    var d = _.Div({
+    var d = Div({
         textGet: function () {
             return propTest1.Prop2;
         }
     });
-    var tw1 = _.Div({
+    var tw1 = Div({
         kids: [
             d, 
-            _.Input({
-                valueGet: function () {
+            Input({
+                valueGet: function (ie) {
                     return propTest1.Prop2;
                 },
                 type: 'text',
-                valueSet: function (newVal) {
+                valueSet: function (ie, newVal) {
                     propTest1.Prop2 = newVal;
                 }
             }), 
@@ -149,7 +156,7 @@ function doStaticLists() {
     ul1.render({
         targetDomID: 'Lists.Test1.Result'
     });
-    var jsSubject = DataExamples.GenerateBooks(1000, 1000);
+    var jsSubject = DataExamples.GenerateBooks(3, 3);
     var ul2 = UL({
         kids: [
             LI({
@@ -189,29 +196,37 @@ function doDynamicLists() {
             })
         ]
     });
-    Dh.addSelectionChangeListener('global', function () {
-        var selectedChapters = [];
-        doDynamicLists_json.books.forEach(function (book) {
-            book.chapters.forEach(function (chapter) {
-                if(chapter.selected) {
-                    selectedChapters.push(chapter);
-                }
-            });
-        });
-        var ul2 = UL({
-            kids: selectedChapters.map(function (ch) {
-                return DataExamples.chapterToLI2(ch);
-            })
-        });
-        ul2.render({
-            targetDomID: 'DynamicLists.Test1.Result.Detail'
-        });
-    });
+    Dh.addSelectionChangeListener('global', selectionChangeListener);
     ul1.render({
         targetDomID: 'DynamicLists.Test1.Result'
     });
 }
+function selectionChangeListener() {
+    var _ = DOM;
+    var UL = _.UL;
+    var selectedChapters = [];
+    doDynamicLists_json.books.forEach(function (book) {
+        book.chapters.forEach(function (chapter) {
+            if(chapter.selected) {
+                selectedChapters.push(chapter);
+            }
+        });
+    });
+    var ul2 = UL({
+        kids: selectedChapters.map(function (ch) {
+            return DataExamples.chapterToLI2(ch, 0);
+        })
+    });
+    ul2.render({
+        targetDomID: 'DynamicLists.Test1.Result.Detail'
+    });
+}
 window.onload = function () {
+    doPropTests();
+    doElxTests();
+    doInputTests();
+    doTwoWayBindingTests();
+    doStaticLists();
     doDynamicLists();
 };
 //@ sourceMappingURL=app.js.map

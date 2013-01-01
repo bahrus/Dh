@@ -4,7 +4,7 @@ module DOM {
     export interface IDOMBinder {
 
         attributes?: { [name: string]: string; };
-        dynamicAttributes?: { [name: string]: { (): string; }; };
+        dynamicAttributes?: { [name: string]: { (el: ElX): string; }; };
 
         classes?: string[];
 
@@ -19,7 +19,7 @@ module DOM {
         //Inner Content - used if textGet is null
         text?: string;
         //Dynamic Inner Content
-        textGet?(): string;
+        textGet?(el: ElX): string;
         //child elements - used if kidsGet is null
         
         toggleKidsOnParentClick?: bool;
@@ -28,19 +28,13 @@ module DOM {
         selectSettings?: ISelectBinder;
     }
 
-    export interface IInputBinder extends IDOMBinder{
-        type?: string;
-        value?: string;
-        valueGet? (): string;
-        valueSet? (newVal: string): void;
-        checkedValueSet? (oldVal: string, newVal: string): void;
-    }
+    
 
     export interface ISelectBinder {
         //static 
         selected?: bool;
         //dynamic
-        selectGet? (): bool;
+        selectGet? (elX : ElX): bool;
         selectSet? (elX : ElX, newVal: bool): void;
         group?: string;
         selClassName?: string;
@@ -203,12 +197,12 @@ module DOM {
             var dynamicAttribs = bI.dynamicAttributes;
             if (dynamicAttribs) {
                 for (var dynamicAttrib in dynamicAttribs) {
-                    context.output += ' ' + dynamicAttrib + '="' + dynamicAttribs[dynamicAttrib]() + '"';
+                    context.output += ' ' + dynamicAttrib + '="' + dynamicAttribs[dynamicAttrib](this) + '"';
                 }
             }
             context.output += '>';
             if (bI.textGet) {
-                context.output += bI.textGet();
+                context.output += bI.textGet(this);
             } else if (bI.text) {
                 context.output += bI.text;
             }
@@ -255,6 +249,9 @@ module DOM {
                 var el = els[i];
                 el.notifyAddedToDOM();
             }
+            delete renderContext.elements;
+            var s = renderContext.settings;
+            delete s.targetDom;
         }
 
         public innerRender(settings: IRenderContextProps){
@@ -369,7 +366,7 @@ module DOM {
             if(!this._rendered) return;
             var bI = this.bindInfo;
             if(!bI.textGet) return;
-            var newVal = bI.textGet();
+            var newVal = bI.textGet(this);
             var h : HTMLElement = this.el;
             if(h.innerHTML===newVal) return;
             h.innerHTML = newVal;
@@ -384,7 +381,7 @@ module DOM {
             var elemPropGetter = bI.dynamicAttributes[propName];
             if (!elemPropGetter) return;
             var htmlElem = this.el;
-            var sVal = elemPropGetter();
+            var sVal = elemPropGetter(this);
             if (htmlElem.attributes[propName] != sVal) {
                 htmlElem.attributes[propName] = sVal;
             }
@@ -433,5 +430,9 @@ module DOM {
     
     export function Input(bindInfo: IInputBinder): InputElement {
         return new InputElement(bindInfo);
+    }
+
+    export function LabelForInput(bindInfo: IInputLabelBinder): InputLabelElement {
+        return new InputLabelElement(bindInfo);
     }
 }

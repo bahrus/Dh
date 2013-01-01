@@ -11,7 +11,7 @@ var DOM;
         if(!newValue || !ie) {
             return;
         }
-        ie.bindInfo.valueSet(newValue);
+        ie.bindInfo.valueSet(ie, newValue);
     }
     var InputElement = (function (_super) {
         __extends(InputElement, _super);
@@ -20,7 +20,7 @@ var DOM;
             this.bindInfo = bindInfo;
             bindInfo.tag = "input";
             if(bindInfo.valueGet) {
-                this.value = bindInfo.valueGet();
+                this.value = bindInfo.valueGet(this);
             } else {
                 this.value = bindInfo.value;
             }
@@ -59,5 +59,29 @@ var DOM;
         return InputElement;
     })(DOM.ElX);
     DOM.InputElement = InputElement;    
+    var InputLabelElement = (function (_super) {
+        __extends(InputLabelElement, _super);
+        function InputLabelElement(bindInfo) {
+                _super.call(this, bindInfo);
+            this.bindInfo = bindInfo;
+            bindInfo.tag = 'label';
+            this.for = bindInfo.forElX.ID;
+            delete bindInfo.forElX;
+        }
+        Object.defineProperty(InputLabelElement.prototype, "for", {
+            get: function () {
+                return this.bindInfo.attributes['for'];
+            },
+            set: function (sVal) {
+                if(sVal) {
+                    this.bindInfo.attributes['for'] = sVal;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return InputLabelElement;
+    })(DOM.ElX);
+    DOM.InputLabelElement = InputLabelElement;    
 })(DOM || (DOM = {}));
 //@ sourceMappingURL=InputElement.js.map
