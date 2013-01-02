@@ -1,6 +1,14 @@
 module Dh {
     //export function getPropName( 
     //TOD: make val of generic type
+
+    export interface ISetBoolValue extends IBVGetter {
+        setter(obj: any, val: bool): void;
+        getter(obj: any): bool;
+        obj: any;
+        val: bool;
+    }
+
     export interface ISetStringValue extends ISVGetter{
         setter(obj: any, val: string): void;
         getter(obj: any): string;
@@ -12,6 +20,12 @@ module Dh {
         //getter(obj: any): string;
         obj: any;
         callback(newVal: string): void;
+    }
+
+    export interface IListenForBoolValueChange extends IBVGetter{
+        //getter(obj: any): string;
+        obj: any;
+        callback(newVal: bool): void;
     }
 
     export interface IListenForSelectionChange {
@@ -35,8 +49,15 @@ module Dh {
         getter(obj: any): string;
     }
 
+    export interface IBVGetter {
+        getter(obj: any): bool;
+    }
+    
     export var objectLookup: { [name: string]: any; } = {};
-    var objectListeners: { [name: string]: { (newVal: string): void; }[]; } = {}; 
+    var SVObjectChangeListeners: { [name: string]: { (newVal: string): void; }[]; } = {}; 
+
+    var BVObjectChangeListeners: { [name: string]: { (newVal: bool): void; }[]; } = {};
+
     //export var windowEventListeners: { [name: string]: { (IListenForTopic): void; }[]; } = {};
     var windowEventListeners: { [name: string]: IListenForTopic[]; } = {};
     var selectionChangeListeners : { [name: string]: { (); void; } []; } = { };
@@ -45,7 +66,7 @@ module Dh {
     export function getGlobalStorage() {
         return {
             objectLookup: objectLookup,
-            objectListeners: objectListeners,
+            objectListeners: SVObjectChangeListeners,
             windowEventListeners: windowEventListeners,
             selectionChangeListeners: selectionChangeListeners,
             selectGroups: selectGroups,
@@ -208,8 +229,35 @@ module Dh {
         //next two lines repeat in setSV - common func?
         var propName = getStringPropName(listener.getter);
         var lID = objId + "." + propName;
-        if (!objectListeners[lID]) objectListeners[lID] = [];
-        objectListeners[lID].push(listener.callback);
+        if (!SVObjectChangeListeners[lID]) SVObjectChangeListeners[lID] = [];
+        SVObjectChangeListeners[lID].push(listener.callback);
+    }
+
+    export function ListenForBVChange(listener : IListenForBoolValueChange){
+        var obj = listener.obj;
+        var objId = GUID(obj);
+        //next two lines repeat in setSV - common func?
+        var propName = getBoolPropName(listener.getter);
+        var lID = objId + "." + propName;
+        if (!BVObjectChangeListeners[lID]) BVObjectChangeListeners[lID] = [];
+        
+        BVObjectChangeListeners[lID].push(listener.callback);
+    }
+
+    export function setBV(BVSetter: ISetBoolValue) {
+        var obj = BVSetter.obj;
+        BVSetter.setter(obj, BVSetter.val);
+        if(obj.DhID){
+            var propName = getBoolPropName(BVSetter.getter);
+            var lID = obj.DhID + "." + propName;
+            var listeners = BVObjectChangeListeners[lID];
+            if(listeners){
+                for (var i = 0, n = listeners.length; i < n; i++) {
+                    var callback = listeners[i];
+                    callback(BVSetter.val);
+                }
+            }
+        }
     }
 
     export function setSV(SVSetter: ISetStringValue) {
@@ -218,7 +266,7 @@ module Dh {
         if(obj.DhID){
             var propName = getStringPropName(SVSetter.getter);
             var lID = obj.DhID + "." + propName;
-            var listeners = objectListeners[lID];
+            var listeners = SVObjectChangeListeners[lID];
             if(listeners){
                 for (var i = 0, n = listeners.length; i < n; i++) {
                     var callback = listeners[i];
@@ -244,6 +292,13 @@ module Dh {
     //export function update(
 
     export function getStringPropName(getter: { (newVal: any): string; }) : string {
+        var s = getter.toString();
+        //var s2 = s.substringBetween('.').and(';');
+        var s2 = new Dh.betweenString(s, '.').and(';');
+        return s2;
+    }
+
+    export function getBoolPropName(getter: { (newVal: any): bool; }) : string {
         var s = getter.toString();
         //var s2 = s.substringBetween('.').and(';');
         var s2 = new Dh.betweenString(s, '.').and(';');

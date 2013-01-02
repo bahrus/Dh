@@ -325,6 +325,13 @@ var DOM;
             }
             delete this.parentElement;
         };
+        ElX.prototype.getAttr = function (name) {
+            if(this._rendered) {
+                var el = this.el;
+                return el.getAttribute(name);
+            }
+            return this.bindInfo.attributes[name];
+        };
         ElX.prototype.notifyTextChange = function () {
             if(!this._rendered) {
                 return;
@@ -383,6 +390,11 @@ var DOM;
         return new ElX(bindInfo);
     }
     DOM.Div = Div;
+    function Span(bindInfo) {
+        bindInfo.tag = 'span';
+        return new ElX(bindInfo);
+    }
+    DOM.Span = Span;
     function UL(bindInfo) {
         bindInfo.tag = 'ul';
         return new ElX(bindInfo);

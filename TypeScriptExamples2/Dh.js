@@ -2,7 +2,9 @@ var Dh;
 (function (Dh) {
     Dh.objectLookup = {
     };
-    var objectListeners = {
+    var SVObjectChangeListeners = {
+    };
+    var BVObjectChangeListeners = {
     };
     var windowEventListeners = {
     };
@@ -13,7 +15,7 @@ var Dh;
     function getGlobalStorage() {
         return {
             objectLookup: Dh.objectLookup,
-            objectListeners: objectListeners,
+            objectListeners: SVObjectChangeListeners,
             windowEventListeners: windowEventListeners,
             selectionChangeListeners: selectionChangeListeners,
             selectGroups: selectGroups
@@ -171,19 +173,46 @@ var Dh;
         var objId = GUID(obj);
         var propName = getStringPropName(listener.getter);
         var lID = objId + "." + propName;
-        if(!objectListeners[lID]) {
-            objectListeners[lID] = [];
+        if(!SVObjectChangeListeners[lID]) {
+            SVObjectChangeListeners[lID] = [];
         }
-        objectListeners[lID].push(listener.callback);
+        SVObjectChangeListeners[lID].push(listener.callback);
     }
     Dh.ListenForSVChange = ListenForSVChange;
+    function ListenForBVChange(listener) {
+        var obj = listener.obj;
+        var objId = GUID(obj);
+        var propName = getBoolPropName(listener.getter);
+        var lID = objId + "." + propName;
+        if(!BVObjectChangeListeners[lID]) {
+            BVObjectChangeListeners[lID] = [];
+        }
+        BVObjectChangeListeners[lID].push(listener.callback);
+    }
+    Dh.ListenForBVChange = ListenForBVChange;
+    function setBV(BVSetter) {
+        var obj = BVSetter.obj;
+        BVSetter.setter(obj, BVSetter.val);
+        if(obj.DhID) {
+            var propName = getBoolPropName(BVSetter.getter);
+            var lID = obj.DhID + "." + propName;
+            var listeners = BVObjectChangeListeners[lID];
+            if(listeners) {
+                for(var i = 0, n = listeners.length; i < n; i++) {
+                    var callback = listeners[i];
+                    callback(BVSetter.val);
+                }
+            }
+        }
+    }
+    Dh.setBV = setBV;
     function setSV(SVSetter) {
         var obj = SVSetter.obj;
         SVSetter.setter(obj, SVSetter.val);
         if(obj.DhID) {
             var propName = getStringPropName(SVSetter.getter);
             var lID = obj.DhID + "." + propName;
-            var listeners = objectListeners[lID];
+            var listeners = SVObjectChangeListeners[lID];
             if(listeners) {
                 for(var i = 0, n = listeners.length; i < n; i++) {
                     var callback = listeners[i];
@@ -218,5 +247,11 @@ var Dh;
         return s2;
     }
     Dh.getStringPropName = getStringPropName;
+    function getBoolPropName(getter) {
+        var s = getter.toString();
+        var s2 = new Dh.betweenString(s, '.').and(';');
+        return s2;
+    }
+    Dh.getBoolPropName = getBoolPropName;
 })(Dh || (Dh = {}));
 //@ sourceMappingURL=Dh.js.map

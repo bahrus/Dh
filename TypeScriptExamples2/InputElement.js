@@ -6,9 +6,9 @@ var __extends = this.__extends || function (d, b) {
 var DOM;
 (function (DOM) {
     function InputElementChangeHandler(tEvent) {
-        var newValue = tEvent.event.target['value'];
         var ie = tEvent.elX;
-        if(!newValue || !ie) {
+        var newValue = (ie.type === 'checkbox' ? tEvent.event.target['checked'] : tEvent.event.target['value']);
+        if(newValue === null || !ie) {
             return;
         }
         ie.bindInfo.valueSet(ie, newValue);
@@ -19,6 +19,8 @@ var DOM;
                 _super.call(this, bindInfo);
             this.bindInfo = bindInfo;
             bindInfo.tag = "input";
+            this.type = bindInfo.type ? bindInfo.type : 'text';
+            delete bindInfo.type;
             if(bindInfo.valueGet) {
                 this.value = bindInfo.valueGet(this);
             } else {
@@ -37,8 +39,18 @@ var DOM;
                 return this.bindInfo.attributes['value'];
             },
             set: function (val) {
-                if(val) {
-                    this.bindInfo.attributes['value'] = val;
+                var bI = this.bindInfo;
+                if(this.type === 'checkbox') {
+                    if(val) {
+                        bI.attributes['checked'] = 'checked';
+                    } else {
+                        var attrib = bI.attributes;
+                        delete attrib['checked'];
+                    }
+                } else {
+                    if(val) {
+                        this.bindInfo.attributes['value'] = val;
+                    }
                 }
             },
             enumerable: true,
@@ -46,7 +58,7 @@ var DOM;
         });
         Object.defineProperty(InputElement.prototype, "type", {
             get: function () {
-                return this.bindInfo.attributes['type'];
+                return this.getAttr('type');
             },
             set: function (val) {
                 if(val) {

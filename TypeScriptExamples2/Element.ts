@@ -356,6 +356,14 @@ module DOM {
             delete this.parentElement;
         }
 
+        public getAttr(name: string): string {
+            if (this._rendered) {
+                var el = this.el;
+                return el.getAttribute(name);
+            }
+            return this.bindInfo.attributes[name];
+        }
+
         //public notifyInnerAddedToDOM(){
         //    this._innerRendered = true;
         //    delete this._parentId;
@@ -415,6 +423,11 @@ module DOM {
 
     export function Div(bindInfo: IDOMBinder) : ElX {
         bindInfo.tag = 'div';
+        return new ElX(bindInfo);
+    }
+
+    export function Span(bindInfo: IDOMBinder): ElX {
+        bindInfo.tag = 'span';
         return new ElX(bindInfo);
     }
 

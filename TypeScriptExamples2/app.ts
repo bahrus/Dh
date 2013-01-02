@@ -68,7 +68,7 @@ function doPropTests() {
 }
 
 function doInputTests() {
-    var _ = DOM, Input = _.Input, Label = _.LabelForInput;
+    var _ = DOM, Input = _.Input, Label = _.LabelForInput, Span = _.Span;
     var json = {
         Prop1: 'iah',
         Prop2: 'Prop Val 2',
@@ -89,15 +89,21 @@ function doInputTests() {
 
     lbl2.render({ targetDomID: 'Input.Label2.Result' });
 
+    var in3 = Input({ type: 'checkbox' });
+    var span3 = Span({
+        kids: [Label({ text: 'Label for Checkbox', forElX: in3 }), in3],
+    });
+    span3.render({ targetDomID: 'Input.Test3.Result' });
     //var in3 = Input({
 
 }
 
 function doTwoWayBindingTests() {
-    var _ = DOM, Div = _.Div, Input = _.Input;
+    var _ = DOM, Div = _.Div, Input = _.Input, Label = _.LabelForInput;
     var json = {
         Prop1: 'iah',
         Prop2: 'Prop Val 2',
+        BinaryProp1 : true,
     };
     var propTest1 = new PropTests.Test2(json);
     var d = Div({ textGet: () => propTest1.Prop2 });
@@ -116,6 +122,26 @@ function doTwoWayBindingTests() {
         },
     });
     tw1.render({ targetDomID: 'TwoWayBinding.Test1.Result' });
+
+    var d2 = Div({
+        textGet : () => propTest1.BinaryProp1 ? 'yes' : 'no',
+    });
+    var ckbox = Input({ valueGet: (ie) => propTest1.BinaryProp1 ? 'checked' : null, type: 'checkbox', valueSet: (ie, newVal) => { propTest1.BinaryProp1 = newVal ? true : false; } });
+    var tw2 = Div({
+        kids:[
+            d2,
+            Label({ forElX: ckbox, text: 'chkBox label' }),
+            ckbox,
+        ],
+    });
+    Dh.ListenForBVChange({
+        getter: propTest1.BinaryProp1Getter,
+        obj: propTest1,
+        callback: newVal =>{
+            d2.notifyTextChange();
+        },
+    });
+    tw2.render({targetDomID: 'TwoWayBinding.Test2.Result'});
 }
 
 
@@ -199,10 +225,10 @@ function selectionChangeListener() {
 
 
 window.onload = () => {
-    doPropTests();
-    doElxTests();
-    doInputTests();
+    //doPropTests();
+    //doElxTests();
+    //doInputTests();
     doTwoWayBindingTests();
-    doStaticLists();
-    doDynamicLists();
+    //doStaticLists();
+    //doDynamicLists();
 };

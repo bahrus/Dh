@@ -16,16 +16,21 @@ module DOM {
     }
 
     function InputElementChangeHandler(tEvent: Dh.ITopicEvent){
-        var newValue = tEvent.event.target['value'];
         var ie = <InputElement> tEvent.elX;
-        if(!newValue || !ie) return;
+        var newValue = (ie.type === 'checkbox' ? tEvent.event.target['checked'] : tEvent.event.target['value']);
+        
+        if( newValue===null || !ie) return;
         ie.bindInfo.valueSet(ie, newValue);
     }
 
     export class InputElement extends ElX {
+
+
         constructor (public bindInfo: IInputBinder) {
             super(bindInfo);
             bindInfo.tag = "input";
+            this.type = bindInfo.type ? bindInfo.type : 'text';
+            delete bindInfo.type;
             if (bindInfo.valueGet) {
                 this.value = bindInfo.valueGet(this);
             } else {
@@ -38,26 +43,39 @@ module DOM {
                     //callback: tEvent =>{
                     
                     //},
+                    //topicName:  this.type ==='checkbox' ? 'check' : 'change',
                     topicName: 'change',
                 });
             }
+            
         }
 
         
         
 
         get value(): string {
+            
             return this.bindInfo.attributes['value'];
         }
 
         set value(val: string) {
-            if (val) {
-                this.bindInfo.attributes['value'] = val;
+            var bI = this.bindInfo; 
+            if (this.type === 'checkbox') {
+                if (val) {
+                    bI.attributes['checked'] = 'checked';
+                } else{
+                    var attrib = bI.attributes;
+                    delete attrib['checked'];
+                }
+            } else {
+                if (val) {
+                    this.bindInfo.attributes['value'] = val;
+                }
             }
         }
 
         get type(): string {
-            return this.bindInfo.attributes['type'];
+            return this.getAttr('type');
         }
 
         set type(val: string) {

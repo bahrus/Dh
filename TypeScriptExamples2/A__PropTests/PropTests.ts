@@ -27,6 +27,7 @@ module PropTests {
 
     export interface ITest2 {
         Prop2: string;
+        BinaryProp1?: bool;
     }
 
     export class Test2{
@@ -54,6 +55,23 @@ module PropTests {
         set Prop2(val: string) {
             Dh.setSV({ setter: this.Prop2Setter, obj: this, val: val, getter: this.Prop2Getter, });
         }
+
+        public get BinaryProp1(): bool {
+            return this.Prop2Data.BinaryProp1;
+        }
+
+        public BinaryProp1Getter = (obj: Test2): bool => {
+            return obj.BinaryProp1;
+        }
+
+        public set BinaryProp1(bVal: bool) {
+            Dh.setBV({ setter: this.BinaryProp1Setter, getter: this.BinaryProp1Getter, obj: this, val: bVal, });
+        }
+
+        private BinaryProp1Setter = (obj: Test2, b: bool) => {
+            obj.Prop2Data.BinaryProp1 = b;
+        };
+
     }
 
 }
